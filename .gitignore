@@ -13,3 +13,6 @@ obj/
 
 # Otros
 *.log
+
+# Material de la entrega (PDF y capturas), no forma parte del código
+entrega/
