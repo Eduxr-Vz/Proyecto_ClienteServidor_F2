@@ -1,0 +1,143 @@
+{
+  "info": {
+    "name": "Gestión Servicios Automotrices - Fase 1",
+    "description": "Pruebas del avance de la Fase 1. Solo el controlador de Tickets tiene endpoints activos. PUT y DELETE devuelven 501 (Not Implemented) porque se desarrollarán en la Fase 2.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:7122",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Tickets - Obtener todos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets"]
+        },
+        "description": "Devuelve la lista de tickets con datos del vehículo, cliente y mecánico. Respuesta esperada: 200 OK."
+      }
+    },
+    {
+      "name": "Tickets - Obtener por id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets", "1"]
+        },
+        "description": "Devuelve un ticket específico. Respuesta esperada: 200 OK, o 404 si el id no existe."
+      }
+    },
+    {
+      "name": "Tickets - Crear (caso válido)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idVehiculo\": 2,\n  \"descripcionProblema\": \"Vibración fuerte en el volante al frenar a más de 80 km/h.\",\n  \"idMecanico\": 3,\n  \"fechaEstimadaEntrega\": \"2026-07-10T18:00:00\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets"]
+        },
+        "description": "Crea un ticket nuevo. Respuesta esperada: 201 Created con el ticket en el cuerpo. NOTA: los servicios (idsServicios) todavía no se procesan, se implementará en la Fase 2."
+      }
+    },
+    {
+      "name": "Tickets - Crear (falla validación)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idVehiculo\": 2,\n  \"descripcionProblema\": \"corto\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets"]
+        },
+        "description": "Prueba de validación: la descripción tiene menos de 10 caracteres. Respuesta esperada: 400 Bad Request con los errores de validación."
+      }
+    },
+    {
+      "name": "Tickets - Crear (vehículo inexistente)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idVehiculo\": 999,\n  \"descripcionProblema\": \"El aire acondicionado no enfría y huele raro.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets"]
+        },
+        "description": "El vehículo 999 no está registrado. Respuesta esperada: 400 Bad Request con mensaje descriptivo."
+      }
+    },
+    {
+      "name": "Tickets - Actualizar (PENDIENTE Fase 2)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"EnProceso\",\n  \"observaciones\": \"Se detectó fuga de aceite en el retén delantero.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets", "1"]
+        },
+        "description": "Endpoint aún no implementado. Respuesta esperada en esta fase: 501 Not Implemented."
+      }
+    },
+    {
+      "name": "Tickets - Eliminar (PENDIENTE Fase 2)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets", "1"]
+        },
+        "description": "Endpoint aún no implementado. Respuesta esperada en esta fase: 501 Not Implemented."
+      }
+    }
+  ]
+}

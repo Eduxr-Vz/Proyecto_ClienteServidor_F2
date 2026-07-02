@@ -1,0 +1,32 @@
+@baseUrl = https://localhost:7122
+
+### Obtener todos los tickets
+GET {{baseUrl}}/api/tickets
+Accept: application/json
+
+### Obtener un ticket por id
+GET {{baseUrl}}/api/tickets/1
+Accept: application/json
+
+### Crear un ticket nuevo
+POST {{baseUrl}}/api/tickets
+Content-Type: application/json
+
+{
+  "idVehiculo": 1,
+  "descripcionProblema": "El motor hace un ruido extraño al acelerar y vibra en frío.",
+  "idMecanico": 1,
+  "fechaEstimadaEntrega": "2026-07-10T18:00:00"
+}
+
+### Actualizar un ticket (PENDIENTE - devuelve 501 en esta fase)
+PUT {{baseUrl}}/api/tickets/1
+Content-Type: application/json
+
+{
+  "estado": "EnProceso",
+  "observaciones": "Se detectó fuga de aceite en el retén."
+}
+
+### Eliminar un ticket (PENDIENTE - devuelve 501 en esta fase)
+DELETE {{baseUrl}}/api/tickets/1
