@@ -1,9 +1,9 @@
 # Gestión de Servicios Automotrices - API REST
 
-Proyecto universitario para la materia de **Clientes-Servidor**.
+Proyecto de la materia **Clientes-Servidor**.
 API REST para administrar un taller mecánico: clientes, sus vehículos, los mecánicos, el catálogo de servicios y los tickets (órdenes de servicio).
 
-> **Estado: Fase 1 (avance).** El proyecto está en desarrollo; varias funcionalidades están pendientes y marcadas con `TODO` en el código.
+> **Estado: Fase 2.** CRUD completo de tickets (Create, Read, Update, Delete) con Entity Framework Core y SQL Server. Los controladores de los demás catálogos se desarrollarán en la siguiente fase.
 
 ## Tecnologías
 
@@ -20,7 +20,7 @@ Proyecto_ClientesServidor/
 ├── GestionServiciosAutomotrices.sln
 ├── GestionServiciosAutomotrices.API/
 │   ├── Controllers/
-│   │   └── TicketsController.cs      # CRUD de tickets (parcial)
+│   │   └── TicketsController.cs      # CRUD completo de tickets
 │   ├── Models/                       # Entidades del dominio
 │   │   ├── Cliente.cs
 │   │   ├── Vehiculo.cs
@@ -62,36 +62,45 @@ Proyecto_ClientesServidor/
 
 4. Abrir Swagger en: **https://localhost:7122/swagger**
 
-## Endpoints (Fase 1)
+## Endpoints (Fase 2 - CRUD completo)
 
-| Método | Ruta                      | Estado                                  |
-|--------|---------------------------|-----------------------------------------|
-| GET    | /api/tickets              | ✅ Funcionando                          |
-| GET    | /api/tickets/{id}         | ✅ Funcionando                          |
-| POST   | /api/tickets              | 🟡 Parcial (no procesa servicios ni calcula total) |
-| PUT    | /api/tickets/{id}         | ⛔ Pendiente (devuelve 501)             |
-| PATCH  | /api/tickets/{id}/estado  | ⛔ Pendiente (devuelve 501)             |
-| DELETE | /api/tickets/{id}         | ⛔ Pendiente (devuelve 501)             |
+| Método | Ruta                      | Descripción                                          | Respuestas          |
+|--------|---------------------------|------------------------------------------------------|---------------------|
+| GET    | /api/tickets              | Lista todos los tickets                              | 200                 |
+| GET    | /api/tickets/{id}         | Consulta un ticket por id                            | 200, 404            |
+| POST   | /api/tickets              | Crea un ticket con folio consecutivo; asocia servicios y calcula el total | 201, 400 |
+| PUT    | /api/tickets/{id}         | Actualiza mecánico, estado, fechas, descripción y observaciones | 200, 400, 404 |
+| PATCH  | /api/tickets/{id}/estado  | Cambia únicamente el estado                          | 200, 400, 404       |
+| DELETE | /api/tickets/{id}         | Elimina el ticket y sus servicios asociados          | 204, 400, 404       |
+
+### Reglas de negocio implementadas
+
+- El **folio** se genera automáticamente como consecutivo del año (`TKT-2026-0003`).
+- El **total** se calcula al crear el ticket, sumando el precio vigente de los servicios solicitados (queda registrado en `TicketServicios.PrecioAplicado`).
+- **Entregado** y **Cancelado** son estados finales: un ticket en esos estados ya no puede cambiar de estado.
+- Al pasar a **Entregado** se registra automáticamente la `FechaEntrega`.
+- Un ticket **Entregado no puede eliminarse** (forma parte del historial del taller).
+- Validaciones con DataAnnotations en los DTOs (descripción de 10 a 500 caracteres, ids válidos) y verificación de existencia de vehículo, mecánico y servicios.
 
 ## Pruebas con Postman
 
-Importar el archivo `postman/GestionServiciosAutomotrices.postman_collection.json` en Postman (botón *Import*). La colección incluye:
+Importar el archivo `postman/GestionServiciosAutomotrices.postman_collection.json` en Postman (botón *Import*). La colección incluye 11 peticiones que cubren **casos exitosos y casos de error** de todos los endpoints:
 
-- GET de todos los tickets y por id.
-- POST con caso válido, caso que falla validación (descripción corta) y caso de vehículo inexistente.
-- PUT y DELETE que por ahora responden **501 Not Implemented**.
+- GET de todos los tickets, por id, y por id inexistente (404).
+- POST con servicios (calcula total), con validación fallida (400) y con vehículo inexistente (400).
+- PUT con actualización válida (200) y con id inexistente (404).
+- PATCH para cambiar solo el estado.
+- DELETE con caso válido (204) y con id inexistente (404).
 
 La variable `baseUrl` de la colección apunta a `https://localhost:7122`.
 
 ## Pendientes para las siguientes fases
 
-- [ ] Completar PUT, PATCH y DELETE de tickets (con reglas de transición de estados).
-- [ ] Guardar los servicios del ticket en `TicketServicios` y calcular el total.
-- [ ] Generación de folio consecutivo (`TKT-2026-0001`).
 - [ ] Controladores de Clientes, Vehículos, Mecánicos y Servicios.
+- [ ] Filtros y paginación en el GET de tickets.
 - [ ] Migraciones de EF Core en lugar del script SQL manual.
 - [ ] CORS para el cliente web.
 - [ ] Autenticación con JWT y roles.
 
 ---
-*Fase 1 entregada como avance del proyecto. El código contiene comentarios `TODO` que indican la funcionalidad planeada para las siguientes entregas.*
+*Fase 2: CRUD completo de tickets probado en Postman. Los comentarios `TODO (Fase 3)` del código indican la funcionalidad planeada para las siguientes entregas.*

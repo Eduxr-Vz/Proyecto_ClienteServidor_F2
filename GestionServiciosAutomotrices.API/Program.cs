@@ -25,13 +25,13 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "API Gestión de Servicios Automotrices",
-        Version = "v1 (Fase 1 - Avance)",
+        Version = "v1 (Fase 2 - CRUD completo)",
         Description = "API REST para la administración de un taller mecánico. " +
-                      "Proyecto universitario en desarrollo."
+                      "CRUD completo de tickets: crear, consultar, actualizar y eliminar."
     });
 });
 
-// TODO (Fase 2): Configurar CORS para el cliente web.
+// TODO (Fase 3): Configurar CORS para el cliente web.
 // TODO (Fase 3): Agregar autenticación con JWT y manejo de roles (admin / recepcionista / mecánico).
 
 var app = builder.Build();

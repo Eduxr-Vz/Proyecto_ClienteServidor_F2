@@ -24,6 +24,18 @@ namespace GestionServiciosAutomotrices.API.Data
             modelBuilder.Entity<TicketServicio>()
                 .HasKey(ts => new { ts.IdTicket, ts.IdServicio });
 
+            // Llaves foráneas explícitas de la tabla intermedia; sin esto EF
+            // genera columnas sombra (TicketIdTicket) que no existen en la BD.
+            modelBuilder.Entity<TicketServicio>()
+                .HasOne(ts => ts.Ticket)
+                .WithMany(t => t.TicketServicios)
+                .HasForeignKey(ts => ts.IdTicket);
+
+            modelBuilder.Entity<TicketServicio>()
+                .HasOne(ts => ts.Servicio)
+                .WithMany(s => s.TicketServicios)
+                .HasForeignKey(ts => ts.IdServicio);
+
             // Las placas no se pueden repetir.
             modelBuilder.Entity<Vehiculo>()
                 .HasIndex(v => v.Placas)
@@ -48,8 +60,7 @@ namespace GestionServiciosAutomotrices.API.Data
                 .HasForeignKey(t => t.IdMecanico)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // TODO (Fase 2): Agregar datos semilla (HasData) para el catálogo de servicios.
-            // TODO (Fase 2): Revisar si conviene borrado lógico en Clientes y Vehiculos.
+            // TODO (Fase 3): Revisar si conviene borrado lógico en Clientes y Vehiculos.
         }
     }
 }

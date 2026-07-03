@@ -1,6 +1,6 @@
 /* ============================================================
    Proyecto: Gestión de Servicios Automotrices
-   Script de creación de la base de datos - FASE 1
+   Script de creación de la base de datos - FASE 2
    Motor: SQL Server (probado en SQL Server Express)
 
    NOTA: En fases posteriores este script se reemplazará por
@@ -107,7 +107,7 @@ CREATE TABLE TicketServicios (
 GO
 
 /* ============================================================
-   Datos de prueba para poder probar los endpoints de la fase 1
+   Datos de prueba para poder probar los endpoints
    ============================================================ */
 
 INSERT INTO Clientes (Nombre, Apellidos, Telefono, Correo, Direccion) VALUES
@@ -143,9 +143,10 @@ INSERT INTO Tickets (Folio, IdVehiculo, IdMecanico, DescripcionProblema, Estado,
 GO
 
 /* ============================================================
-   PENDIENTE (Fase 2):
+   PENDIENTE (Fase 3):
    - Procedimientos almacenados para reportes.
    - Índices adicionales según las consultas más frecuentes.
-   - Trigger o lógica para actualizar Tickets.Total al agregar
-     registros en TicketServicios.
+
+   NOTA: Tickets.Total se calcula en la API al crear el ticket,
+   sumando el PrecioAplicado de sus registros en TicketServicios.
    ============================================================ */
