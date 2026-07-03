@@ -1,0 +1,74 @@
+@model GestionServiciosAutomotrices.API.DTOs.TicketCrearDto
+@{
+    ViewData["Title"] = "Nuevo ticket";
+    var servicios = (List<GestionServiciosAutomotrices.API.Models.Servicio>)ViewBag.Servicios;
+}
+
+<h1 class="h3 mb-3">Abrir nuevo ticket</h1>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="IdVehiculo" class="form-label">Vehículo</label>
+                        <select asp-for="IdVehiculo" asp-items="ViewBag.Vehiculos" class="form-select">
+                            <option value="">-- Selecciona un vehículo --</option>
+                        </select>
+                        <span asp-validation-for="IdVehiculo" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DescripcionProblema" class="form-label">Descripción del problema</label>
+                        <textarea asp-for="DescripcionProblema" class="form-control" rows="3"
+                                  placeholder="Describe la falla que reporta el cliente (mínimo 10 caracteres)"></textarea>
+                        <span asp-validation-for="DescripcionProblema" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="IdMecanico" class="form-label">Mecánico (opcional)</label>
+                            <select asp-for="IdMecanico" asp-items="ViewBag.Mecanicos" class="form-select">
+                                <option value="">-- Asignar después --</option>
+                            </select>
+                            <span asp-validation-for="IdMecanico" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="FechaEstimadaEntrega" class="form-label">Entrega estimada (opcional)</label>
+                            <input asp-for="FechaEstimadaEntrega" type="datetime-local" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Servicios solicitados</label>
+                        @foreach (var s in servicios)
+                        {
+                            var marcado = Model.IdsServicios != null && Model.IdsServicios.Contains(s.IdServicio);
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="IdsServicios"
+                                       value="@s.IdServicio" id="servicio-@s.IdServicio"
+                                       checked="@(marcado ? "checked" : null)" />
+                                <label class="form-check-label" for="servicio-@s.IdServicio">
+                                    @s.Nombre <span class="text-muted">— @s.Precio.ToString("C")</span>
+                                </label>
+                            </div>
+                        }
+                        <div class="form-text">El total del ticket se calcula automáticamente con los servicios seleccionados.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Crear ticket</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.20.0/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js"></script>
+}
