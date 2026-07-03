@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Gestión Servicios Automotrices - Fase 1",
-    "description": "Pruebas del avance de la Fase 1. Solo el controlador de Tickets tiene endpoints activos. PUT y DELETE devuelven 501 (Not Implemented) porque se desarrollarán en la Fase 2.",
+    "name": "Gestión Servicios Automotrices - Fase 2",
+    "description": "Pruebas del CRUD completo de tickets (Fase 2). Incluye casos exitosos y casos de error de cada endpoint: GET, POST, PUT, PATCH y DELETE.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -13,7 +13,7 @@
   ],
   "item": [
     {
-      "name": "Tickets - Obtener todos",
+      "name": "01 GET Tickets - Obtener todos",
       "request": {
         "method": "GET",
         "header": [],
@@ -26,7 +26,7 @@
       }
     },
     {
-      "name": "Tickets - Obtener por id",
+      "name": "02 GET Tickets - Obtener por id",
       "request": {
         "method": "GET",
         "header": [],
@@ -35,11 +35,24 @@
           "host": ["{{baseUrl}}"],
           "path": ["api", "tickets", "1"]
         },
-        "description": "Devuelve un ticket específico. Respuesta esperada: 200 OK, o 404 si el id no existe."
+        "description": "Devuelve un ticket específico. Respuesta esperada: 200 OK."
       }
     },
     {
-      "name": "Tickets - Crear (caso válido)",
+      "name": "03 GET Tickets - Id inexistente (error)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets/999",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets", "999"]
+        },
+        "description": "El ticket 999 no existe. Respuesta esperada: 404 Not Found con mensaje descriptivo."
+      }
+    },
+    {
+      "name": "04 POST Tickets - Crear con servicios (caso válido)",
       "request": {
         "method": "POST",
         "header": [
@@ -50,18 +63,18 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"idVehiculo\": 2,\n  \"descripcionProblema\": \"Vibración fuerte en el volante al frenar a más de 80 km/h.\",\n  \"idMecanico\": 3,\n  \"fechaEstimadaEntrega\": \"2026-07-10T18:00:00\"\n}"
+          "raw": "{\n  \"idVehiculo\": 3,\n  \"descripcionProblema\": \"Ruido metálico al frenar y el volante vibra en carretera.\",\n  \"idMecanico\": 3,\n  \"fechaEstimadaEntrega\": \"2026-07-10T18:00:00\",\n  \"idsServicios\": [3, 4]\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/tickets",
           "host": ["{{baseUrl}}"],
           "path": ["api", "tickets"]
         },
-        "description": "Crea un ticket nuevo. Respuesta esperada: 201 Created con el ticket en el cuerpo. NOTA: los servicios (idsServicios) todavía no se procesan, se implementará en la Fase 2."
+        "description": "Crea un ticket con dos servicios del catálogo (frenos delanteros y alineación). Respuesta esperada: 201 Created con folio consecutivo y total calculado (1800 + 600 = 2400)."
       }
     },
     {
-      "name": "Tickets - Crear (falla validación)",
+      "name": "05 POST Tickets - Falla validación (error)",
       "request": {
         "method": "POST",
         "header": [
@@ -79,11 +92,11 @@
           "host": ["{{baseUrl}}"],
           "path": ["api", "tickets"]
         },
-        "description": "Prueba de validación: la descripción tiene menos de 10 caracteres. Respuesta esperada: 400 Bad Request con los errores de validación."
+        "description": "La descripción tiene menos de 10 caracteres. Respuesta esperada: 400 Bad Request con los errores de validación."
       }
     },
     {
-      "name": "Tickets - Crear (vehículo inexistente)",
+      "name": "06 POST Tickets - Vehículo inexistente (error)",
       "request": {
         "method": "POST",
         "header": [
@@ -105,7 +118,7 @@
       }
     },
     {
-      "name": "Tickets - Actualizar (PENDIENTE Fase 2)",
+      "name": "07 PUT Tickets - Actualizar (caso válido)",
       "request": {
         "method": "PUT",
         "header": [
@@ -116,27 +129,84 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"estado\": \"EnProceso\",\n  \"observaciones\": \"Se detectó fuga de aceite en el retén delantero.\"\n}"
+          "raw": "{\n  \"estado\": \"EnProceso\",\n  \"idMecanico\": 1,\n  \"observaciones\": \"Se detectó fuga de aceite en el retén delantero.\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/tickets/1",
+          "raw": "{{baseUrl}}/api/tickets/2",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "1"]
+          "path": ["api", "tickets", "2"]
         },
-        "description": "Endpoint aún no implementado. Respuesta esperada en esta fase: 501 Not Implemented."
+        "description": "Actualiza el ticket 2: cambia el estado, reasigna mecánico y agrega observaciones. Respuesta esperada: 200 OK con el ticket actualizado."
       }
     },
     {
-      "name": "Tickets - Eliminar (PENDIENTE Fase 2)",
+      "name": "08 PUT Tickets - Id inexistente (error)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"EnProceso\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets/999",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets", "999"]
+        },
+        "description": "El ticket 999 no existe. Respuesta esperada: 404 Not Found."
+      }
+    },
+    {
+      "name": "09 PATCH Tickets - Cambiar solo el estado",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "\"Terminado\""
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets/2/estado",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets", "2", "estado"]
+        },
+        "description": "Cambia únicamente el estado del ticket 2 sin enviar el resto de los campos. Respuesta esperada: 200 OK. Nota: Entregado y Cancelado son estados finales; intentar salir de ellos devuelve 400."
+      }
+    },
+    {
+      "name": "10 DELETE Tickets - Eliminar (caso válido)",
       "request": {
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/tickets/1",
+          "raw": "{{baseUrl}}/api/tickets/3",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "1"]
+          "path": ["api", "tickets", "3"]
         },
-        "description": "Endpoint aún no implementado. Respuesta esperada en esta fase: 501 Not Implemented."
+        "description": "Elimina el ticket indicado junto con sus servicios asociados (usa el id devuelto por la prueba 04). Respuesta esperada: 204 No Content. Regla de negocio: los tickets Entregados no pueden eliminarse (400)."
+      }
+    },
+    {
+      "name": "11 DELETE Tickets - Id inexistente (error)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/tickets/999",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "tickets", "999"]
+        },
+        "description": "El ticket 999 no existe. Respuesta esperada: 404 Not Found."
       }
     }
   ]

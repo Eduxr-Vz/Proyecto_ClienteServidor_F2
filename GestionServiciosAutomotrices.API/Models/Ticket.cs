@@ -12,7 +12,7 @@ namespace GestionServiciosAutomotrices.API.Models
         public int IdTicket { get; set; }
 
         // Folio legible para el cliente, ej. "TKT-2026-0001".
-        // TODO: Implementar generación automática de folio consecutivo (por ahora se genera de forma provisional).
+        // Se genera automáticamente como consecutivo del año al crear el ticket.
         [Required]
         [StringLength(20)]
         public string Folio { get; set; } = string.Empty;
@@ -33,14 +33,14 @@ namespace GestionServiciosAutomotrices.API.Models
 
         public DateTime? FechaEstimadaEntrega { get; set; }
 
-        // Se llenará cuando el vehículo se entregue al cliente (fase 2).
+        // Se llena automáticamente cuando el ticket pasa al estado Entregado.
         public DateTime? FechaEntrega { get; set; }
 
         [StringLength(500)]
         public string? Observaciones { get; set; }
 
-        // TODO: Calcular el total a partir de los servicios asociados (TicketServicios).
-        // Por ahora se guarda en 0 al crear el ticket.
+        // Suma de los precios aplicados de los servicios asociados (TicketServicios);
+        // se calcula al crear el ticket.
         [Column(TypeName = "decimal(10,2)")]
         public decimal Total { get; set; }
 

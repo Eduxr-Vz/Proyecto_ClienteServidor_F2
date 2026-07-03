@@ -21,9 +21,8 @@ namespace GestionServiciosAutomotrices.API.DTOs
 
         public DateTime? FechaEstimadaEntrega { get; set; }
 
-        // Ids de los servicios solicitados.
-        // NOTA: Todavía no se procesan al crear el ticket, se implementará en la fase 2
-        // junto con el cálculo del total.
+        // Ids de los servicios solicitados. Se validan contra el catálogo,
+        // se guardan en TicketServicios y con ellos se calcula el total.
         public List<int>? IdsServicios { get; set; }
     }
 }
