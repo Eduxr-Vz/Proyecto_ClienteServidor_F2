@@ -1,0 +1,13 @@
+@model GestionServiciosAutomotrices.API.Models.EstadoTicket
+@{
+    var clase = Model switch
+    {
+        EstadoTicket.Abierto => "bg-primary",
+        EstadoTicket.EnProceso => "bg-warning text-dark",
+        EstadoTicket.Terminado => "bg-info text-dark",
+        EstadoTicket.Entregado => "bg-success",
+        EstadoTicket.Cancelado => "bg-secondary",
+        _ => "bg-light text-dark"
+    };
+}
+<span class="badge @clase">@Model</span>

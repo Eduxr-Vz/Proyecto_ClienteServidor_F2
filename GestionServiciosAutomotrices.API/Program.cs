@@ -6,7 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ----- Servicios -----
 
-builder.Services.AddControllers()
+// Controladores de API + vistas MVC (interfaz web) en el mismo proyecto.
+builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
         // Los enums (como EstadoTicket) se devuelven como texto en lugar de números.
@@ -42,17 +43,20 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-
-    // La raíz del sitio redirige a Swagger para facilitar las pruebas.
-    app.MapGet("/", () => Results.Redirect("/swagger"))
-       .ExcludeFromDescription();
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 // Por ahora la API es pública; la autorización se activará cuando exista autenticación.
 app.UseAuthorization();
 
+// Rutas con atributos (API REST en /api/tickets).
 app.MapControllers();
+
+// Ruta convencional de las vistas MVC; la raíz del sitio muestra la lista de tickets.
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Tickets}/{action=Index}/{id?}");
 
 app.Run();

@@ -1,0 +1,71 @@
+@model GestionServiciosAutomotrices.API.DTOs.TicketActualizarDto
+@{
+    ViewData["Title"] = $"Editar {ViewBag.Folio}";
+    var estadoActual = (EstadoTicket)ViewBag.EstadoActual;
+    var esFinal = estadoActual is EstadoTicket.Entregado or EstadoTicket.Cancelado;
+}
+
+<h1 class="h3 mb-1">Editar ticket @ViewBag.Folio</h1>
+<p class="text-muted mb-3">@ViewBag.VehiculoTexto — estado actual: <partial name="_EstadoBadge" model="estadoActual" /></p>
+
+@if (esFinal)
+{
+    <div class="alert alert-warning">
+        Este ticket está <strong>@estadoActual</strong>, que es un estado final: ya no puede cambiar de estado.
+        Solo se pueden editar las observaciones.
+    </div>
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-action="Edit" asp-route-id="@ViewBag.IdTicket" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Estado" class="form-label">Estado</label>
+                            <select asp-for="Estado" asp-items="Html.GetEnumSelectList<EstadoTicket>()" class="form-select"></select>
+                            <span asp-validation-for="Estado" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="IdMecanico" class="form-label">Mecánico</label>
+                            <select asp-for="IdMecanico" asp-items="ViewBag.Mecanicos" class="form-select">
+                                <option value="">-- Sin asignar --</option>
+                            </select>
+                            <span asp-validation-for="IdMecanico" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="FechaEstimadaEntrega" class="form-label">Entrega estimada</label>
+                        <input asp-for="FechaEstimadaEntrega" type="datetime-local" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DescripcionProblema" class="form-label">Descripción del problema</label>
+                        <textarea asp-for="DescripcionProblema" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="DescripcionProblema" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Observaciones" class="form-label">Observaciones del taller</label>
+                        <textarea asp-for="Observaciones" class="form-control" rows="3"
+                                  placeholder="Diagnóstico, piezas cambiadas, notas para el cliente..."></textarea>
+                        <span asp-validation-for="Observaciones" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    <a asp-action="Details" asp-route-id="@ViewBag.IdTicket" class="btn btn-outline-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.20.0/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js"></script>
+}

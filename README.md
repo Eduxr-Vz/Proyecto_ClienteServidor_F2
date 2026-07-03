@@ -3,14 +3,15 @@
 Proyecto de la materia **Clientes-Servidor**.
 API REST para administrar un taller mecánico: clientes, sus vehículos, los mecánicos, el catálogo de servicios y los tickets (órdenes de servicio).
 
-> **Estado: Fase 2.** CRUD completo de tickets (Create, Read, Update, Delete) con Entity Framework Core y SQL Server. Los controladores de los demás catálogos se desarrollarán en la siguiente fase.
+> **Estado: Fase 2.** CRUD completo de tickets (Create, Read, Update, Delete) disponible de dos formas **en un solo proyecto**: una **interfaz web MVC** (vistas Razor con Bootstrap) y una **API REST** (JSON). Ambas comparten los modelos, el DbContext y las reglas de negocio.
 
 ## Tecnologías
 
-- ASP.NET Core Web API (.NET 10)
+- ASP.NET Core (.NET 10): MVC con vistas Razor + Web API en el mismo proyecto
 - Entity Framework Core 10 (SQL Server)
 - SQL Server Express
-- Swagger (documentación y pruebas)
+- Bootstrap 5 (interfaz web)
+- Swagger (documentación y pruebas de la API)
 - Postman (colección de pruebas incluida)
 
 ## Estructura del proyecto
@@ -20,7 +21,12 @@ Proyecto_ClientesServidor/
 ├── GestionServiciosAutomotrices.sln
 ├── GestionServiciosAutomotrices.API/
 │   ├── Controllers/
-│   │   └── TicketsController.cs      # CRUD completo de tickets
+│   │   ├── TicketsController.cs      # CRUD con vistas MVC (interfaz web)
+│   │   └── Api/
+│   │       └── TicketsApiController.cs  # CRUD de la API REST (api/tickets)
+│   ├── Views/
+│   │   ├── Tickets/                  # Index, Details, Create, Edit, Delete
+│   │   └── Shared/                   # _Layout y parciales
 │   ├── Models/                       # Entidades del dominio
 │   │   ├── Cliente.cs
 │   │   ├── Vehiculo.cs
@@ -34,7 +40,8 @@ Proyecto_ClientesServidor/
 │   │   ├── TicketActualizarDto.cs
 │   │   └── TicketDto.cs
 │   ├── Data/
-│   │   └── AppDbContext.cs
+│   │   ├── AppDbContext.cs
+│   │   └── TicketReglas.cs           # Reglas de negocio compartidas (folio, estados)
 │   ├── Program.cs
 │   └── appsettings.json              # Cadena de conexión
 ├── database/
@@ -60,9 +67,23 @@ Proyecto_ClientesServidor/
    dotnet run --launch-profile https
    ```
 
-4. Abrir Swagger en: **https://localhost:7122/swagger**
+4. Abrir en el navegador:
+   - **Interfaz web (MVC):** https://localhost:7122 — lista de tickets con botones para crear, editar y eliminar.
+   - **API (Swagger):** https://localhost:7122/swagger
 
-## Endpoints (Fase 2 - CRUD completo)
+## Interfaz web (MVC)
+
+| Ruta                  | Vista                                             |
+|-----------------------|---------------------------------------------------|
+| `/` o `/Tickets`      | Lista de tickets con estado, total y acciones     |
+| `/Tickets/Details/5`  | Detalle: datos, servicios aplicados y total       |
+| `/Tickets/Create`     | Formulario de alta (vehículo, mecánico, servicios con cálculo de total) |
+| `/Tickets/Edit/5`     | Edición: estado, mecánico, fechas y observaciones |
+| `/Tickets/Delete/5`   | Confirmación de eliminación                       |
+
+Los formularios validan con DataAnnotations (las mismas reglas que la API) y las reglas de negocio compartidas viven en `Data/TicketReglas.cs`.
+
+## Endpoints de la API REST (Fase 2 - CRUD completo)
 
 | Método | Ruta                      | Descripción                                          | Respuestas          |
 |--------|---------------------------|------------------------------------------------------|---------------------|
@@ -75,7 +96,7 @@ Proyecto_ClientesServidor/
 
 ### Reglas de negocio implementadas
 
-- El **folio** se genera automáticamente como consecutivo del año (`TKT-2026-0003`).
+- El **folio** se genera automáticamente como consecutivo del año (`TKT-2026-0003`), tomando el número más alto registrado para no duplicar aunque se eliminen tickets.
 - El **total** se calcula al crear el ticket, sumando el precio vigente de los servicios solicitados (queda registrado en `TicketServicios.PrecioAplicado`).
 - **Entregado** y **Cancelado** son estados finales: un ticket en esos estados ya no puede cambiar de estado.
 - Al pasar a **Entregado** se registra automáticamente la `FechaEntrega`.
@@ -103,4 +124,4 @@ La variable `baseUrl` de la colección apunta a `https://localhost:7122`.
 - [ ] Autenticación con JWT y roles.
 
 ---
-*Fase 2: CRUD completo de tickets probado en Postman. Los comentarios `TODO (Fase 3)` del código indican la funcionalidad planeada para las siguientes entregas.*
+*Fase 2: CRUD completo de tickets con interfaz web MVC y API REST en un solo proyecto, probado en navegador y Postman. Los comentarios `TODO (Fase 3)` del código indican la funcionalidad planeada para las siguientes entregas.*
