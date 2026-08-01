@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    Proyecto: Gestión de Servicios Automotrices
    Script de creación de la base de datos - FASE 3
    Motor: SQL Server (probado en LocalDB y SQL Server Express)
@@ -113,36 +113,39 @@ GO
    Datos de prueba para poder probar los endpoints
    ============================================================ */
 
+/* Los textos llevan el prefijo N (N'...') porque las columnas son NVARCHAR:
+   así los acentos y la ñ se guardan como Unicode y no se corrompen. */
+
 INSERT INTO Clientes (Nombre, Apellidos, Telefono, Correo, Direccion) VALUES
-('Juan',  'Pérez García',    '6621234567', 'juan.perez@example.com',  'Calle Reforma 123, Col. Centro'),
-('María', 'López Hernández', '6629876543', 'maria.lopez@example.com', 'Av. Universidad 456'),
-('Carlos','Ramírez Soto',    '6625551020', NULL,                      NULL);
+(N'Juan',  N'Pérez García',    N'6621234567', N'juan.perez@example.com',  N'Calle Reforma 123, Col. Centro'),
+(N'María', N'López Hernández', N'6629876543', N'maria.lopez@example.com', N'Av. Universidad 456'),
+(N'Carlos',N'Ramírez Soto',    N'6625551020', NULL,                       NULL);
 GO
 
 INSERT INTO Vehiculos (IdCliente, Marca, Modelo, Anio, Placas, Color, NumeroSerie) VALUES
-(1, 'Nissan',     'Versa',  2019, 'ABC-123-A', 'Rojo',   NULL),
-(1, 'Toyota',     'Hilux',  2022, 'XYZ-789-B', 'Blanco', NULL),
-(2, 'Volkswagen', 'Jetta',  2017, 'JKL-456-C', 'Gris',   NULL),
-(3, 'Ford',       'Ranger', 2015, 'QWE-321-D', 'Negro',  NULL);
+(1, N'Nissan',     N'Versa',  2019, N'ABC-123-A', N'Rojo',   NULL),
+(1, N'Toyota',     N'Hilux',  2022, N'XYZ-789-B', N'Blanco', NULL),
+(2, N'Volkswagen', N'Jetta',  2017, N'JKL-456-C', N'Gris',   NULL),
+(3, N'Ford',       N'Ranger', 2015, N'QWE-321-D', N'Negro',  NULL);
 GO
 
 INSERT INTO Mecanicos (Nombre, Apellidos, Especialidad, Telefono) VALUES
-('Roberto', 'Domínguez Ríos', 'Motor y transmisión', '6621112233'),
-('Ana',     'Castro Vega',    'Sistema eléctrico',   '6624445566'),
-('Luis',    'Miranda Paz',    'Suspensión y frenos', NULL);
+(N'Roberto', N'Domínguez Ríos', N'Motor y transmisión', N'6621112233'),
+(N'Ana',     N'Castro Vega',    N'Sistema eléctrico',   N'6624445566'),
+(N'Luis',    N'Miranda Paz',    N'Suspensión y frenos', NULL);
 GO
 
 INSERT INTO Servicios (Nombre, Descripcion, Precio, TiempoEstimadoMin) VALUES
-('Cambio de aceite',      'Incluye filtro y hasta 5 litros de aceite sintético', 850.00, 45),
-('Afinación mayor',       'Bujías, filtros, limpieza de inyectores',            2500.00, 180),
-('Frenos delanteros',     'Cambio de balatas y rectificado de discos',          1800.00, 120),
-('Alineación y balanceo', NULL,                                                  600.00, 60),
-('Diagnóstico general',   'Escaneo por computadora y revisión de 20 puntos',     400.00, 60);
+(N'Cambio de aceite',      N'Incluye filtro y hasta 5 litros de aceite sintético', 850.00, 45),
+(N'Afinación mayor',       N'Bujías, filtros, limpieza de inyectores',            2500.00, 180),
+(N'Frenos delanteros',     N'Cambio de balatas y rectificado de discos',          1800.00, 120),
+(N'Alineación y balanceo', NULL,                                                   600.00, 60),
+(N'Diagnóstico general',   N'Escaneo por computadora y revisión de 20 puntos',     400.00, 60);
 GO
 
 /* Un ticket de ejemplo ya registrado */
 INSERT INTO Tickets (Folio, IdVehiculo, IdMecanico, DescripcionProblema, Estado, FechaEstimadaEntrega) VALUES
-('TKT-2026-0001', 1, 1, 'El motor se apaga en los altos y el ventilador no enciende.', 2, DATEADD(DAY, 3, GETDATE()));
+(N'TKT-2026-0001', 1, 1, N'El motor se apaga en los altos y el ventilador no enciende.', 2, DATEADD(DAY, 3, GETDATE()));
 GO
 
 /* ============================================================
