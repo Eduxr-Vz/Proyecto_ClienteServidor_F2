@@ -1,6 +1,13 @@
+using System.Globalization;
 using GestionServiciosAutomotrices.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+
+// Cultura fija en español de México para que los precios se muestren como
+// $2,400.00 y las fechas como dd/MM/yyyy en cualquier equipo donde se ejecute.
+var culturaMexico = new CultureInfo("es-MX");
+CultureInfo.DefaultThreadCurrentCulture = culturaMexico;
+CultureInfo.DefaultThreadCurrentUICulture = culturaMexico;
 
 var builder = WebApplication.CreateBuilder(args);
 
