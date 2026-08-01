@@ -1,0 +1,24 @@
+@model GestionServiciosAutomotrices.API.DTOs.ServicioGuardarDto
+@{
+    ViewData["Title"] = "Nuevo servicio";
+}
+
+<h1 class="h3 mb-3">Agregar servicio al catálogo</h1>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <partial name="_Formulario" model="Model" />
+                    <button type="submit" class="btn btn-primary">Guardar servicio</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScripts" />
+}

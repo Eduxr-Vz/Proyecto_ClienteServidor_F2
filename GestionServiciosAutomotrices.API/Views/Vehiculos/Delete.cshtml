@@ -1,0 +1,47 @@
+@model GestionServiciosAutomotrices.API.Models.Vehiculo
+@{
+    ViewData["Title"] = "Eliminar vehículo";
+    var tieneTickets = Model.Tickets.Any();
+}
+
+<h1 class="h3 mb-3 text-danger">Eliminar vehículo</h1>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body">
+                <p>¿Seguro que quieres eliminar este vehículo? Esta acción no se puede deshacer.</p>
+
+                <dl class="row">
+                    <dt class="col-sm-4">Vehículo</dt>
+                    <dd class="col-sm-8">@Model.Marca @Model.Modelo @Model.Anio</dd>
+
+                    <dt class="col-sm-4">Placas</dt>
+                    <dd class="col-sm-8">@Model.Placas</dd>
+
+                    <dt class="col-sm-4">Dueño</dt>
+                    <dd class="col-sm-8">@Model.Cliente?.Nombre @Model.Cliente?.Apellidos</dd>
+
+                    <dt class="col-sm-4">Tickets</dt>
+                    <dd class="col-sm-8">@Model.Tickets.Count</dd>
+                </dl>
+
+                @if (tieneTickets)
+                {
+                    <div class="alert alert-warning mb-3">
+                        Este vehículo tiene <strong>@Model.Tickets.Count ticket(s)</strong> en el historial del taller
+                        y no puede eliminarse.
+                    </div>
+                    <a asp-action="Details" asp-route-id="@Model.IdVehiculo" class="btn btn-outline-secondary">Ver vehículo</a>
+                }
+                else
+                {
+                    <form asp-action="Delete" asp-route-id="@Model.IdVehiculo" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                    </form>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

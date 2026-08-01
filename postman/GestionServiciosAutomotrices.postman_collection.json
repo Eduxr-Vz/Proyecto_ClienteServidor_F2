@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Gestión Servicios Automotrices - Fase 2",
-    "description": "Pruebas del CRUD completo de tickets (Fase 2). Incluye casos exitosos y casos de error de cada endpoint: GET, POST, PUT, PATCH y DELETE.",
+    "name": "Gestión Servicios Automotrices - Fase 3",
+    "description": "CRUD completo de Tickets, Clientes, Vehículos, Mecánicos y Servicios. Incluye casos exitosos y casos de error de cada endpoint. Ejecutar las carpetas en orden.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -13,201 +13,544 @@
   ],
   "item": [
     {
-      "name": "01 GET Tickets - Obtener todos",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/tickets",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets"]
-        },
-        "description": "Devuelve la lista de tickets con datos del vehículo, cliente y mecánico. Respuesta esperada: 200 OK."
-      }
-    },
-    {
-      "name": "02 GET Tickets - Obtener por id",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/tickets/1",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "1"]
-        },
-        "description": "Devuelve un ticket específico. Respuesta esperada: 200 OK."
-      }
-    },
-    {
-      "name": "03 GET Tickets - Id inexistente (error)",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/tickets/999",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "999"]
-        },
-        "description": "El ticket 999 no existe. Respuesta esperada: 404 Not Found con mensaje descriptivo."
-      }
-    },
-    {
-      "name": "04 POST Tickets - Crear con servicios (caso válido)",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
+      "name": "1. Tickets",
+      "item": [
+        {
+          "name": "1.1 GET todos (paginado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets"]
+            },
+            "description": "Devuelve los tickets con datos de paginación (pagina, porPagina, totalRegistros, totalPaginas, datos). Respuesta esperada: 200 OK."
           }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"idVehiculo\": 3,\n  \"descripcionProblema\": \"Ruido metálico al frenar y el volante vibra en carretera.\",\n  \"idMecanico\": 3,\n  \"fechaEstimadaEntrega\": \"2026-07-10T18:00:00\",\n  \"idsServicios\": [3, 4]\n}"
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/tickets",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets"]
-        },
-        "description": "Crea un ticket con dos servicios del catálogo (frenos delanteros y alineación). Respuesta esperada: 201 Created con folio consecutivo y total calculado (1800 + 600 = 2400)."
-      }
-    },
-    {
-      "name": "05 POST Tickets - Falla validación (error)",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
+        {
+          "name": "1.2 GET con filtros y paginación",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets?estado=EnProceso&pagina=1&porPagina=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets"],
+              "query": [
+                { "key": "estado", "value": "EnProceso" },
+                { "key": "idMecanico", "value": "1", "disabled": true },
+                { "key": "pagina", "value": "1" },
+                { "key": "porPagina", "value": "5" }
+              ]
+            },
+            "description": "Filtra por estado y/o mecánico con paginación. Estados válidos: Abierto, EnProceso, Terminado, Entregado, Cancelado. Respuesta esperada: 200 OK."
           }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"idVehiculo\": 2,\n  \"descripcionProblema\": \"corto\"\n}"
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/tickets",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets"]
-        },
-        "description": "La descripción tiene menos de 10 caracteres. Respuesta esperada: 400 Bad Request con los errores de validación."
-      }
-    },
-    {
-      "name": "06 POST Tickets - Vehículo inexistente (error)",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
+        {
+          "name": "1.3 GET por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets", "1"]
+            },
+            "description": "Respuesta esperada: 200 OK."
           }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"idVehiculo\": 999,\n  \"descripcionProblema\": \"El aire acondicionado no enfría y huele raro.\"\n}"
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/tickets",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets"]
-        },
-        "description": "El vehículo 999 no está registrado. Respuesta esperada: 400 Bad Request con mensaje descriptivo."
-      }
-    },
-    {
-      "name": "07 PUT Tickets - Actualizar (caso válido)",
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
+        {
+          "name": "1.4 GET id inexistente (error)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets", "999"]
+            },
+            "description": "Respuesta esperada: 404 Not Found."
           }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"estado\": \"EnProceso\",\n  \"idMecanico\": 1,\n  \"observaciones\": \"Se detectó fuga de aceite en el retén delantero.\"\n}"
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/tickets/2",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "2"]
-        },
-        "description": "Actualiza el ticket 2: cambia el estado, reasigna mecánico y agrega observaciones. Respuesta esperada: 200 OK con el ticket actualizado."
-      }
-    },
-    {
-      "name": "08 PUT Tickets - Id inexistente (error)",
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
+        {
+          "name": "1.5 POST crear con servicios",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idVehiculo\": 4,\n  \"descripcionProblema\": \"Ruido metálico al frenar y el volante vibra en carretera.\",\n  \"idMecanico\": 3,\n  \"idsServicios\": [3, 4]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets"]
+            },
+            "description": "Crea un ticket con folio consecutivo y total calculado (1800 + 600 = 2400). Respuesta esperada: 201 Created."
           }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"estado\": \"EnProceso\"\n}"
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/tickets/999",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "999"]
-        },
-        "description": "El ticket 999 no existe. Respuesta esperada: 404 Not Found."
-      }
-    },
-    {
-      "name": "09 PATCH Tickets - Cambiar solo el estado",
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
+        {
+          "name": "1.6 POST vehículo con ticket abierto (error)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idVehiculo\": 1,\n  \"descripcionProblema\": \"Segundo ticket para un vehículo que ya tiene uno abierto.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets"]
+            },
+            "description": "Regla de negocio: un vehículo no puede tener dos órdenes de servicio sin cerrar. Respuesta esperada: 400 Bad Request."
           }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "\"Terminado\""
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/tickets/2/estado",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "2", "estado"]
+        {
+          "name": "1.7 POST falla validación (error)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idVehiculo\": 2,\n  \"descripcionProblema\": \"corto\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets"]
+            },
+            "description": "La descripción tiene menos de 10 caracteres. Respuesta esperada: 400 Bad Request."
+          }
         },
-        "description": "Cambia únicamente el estado del ticket 2 sin enviar el resto de los campos. Respuesta esperada: 200 OK. Nota: Entregado y Cancelado son estados finales; intentar salir de ellos devuelve 400."
-      }
+        {
+          "name": "1.8 PUT actualizar servicios (recalcula total)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"EnProceso\",\n  \"observaciones\": \"Se detectó también fuga de aceite; se agrega afinación.\",\n  \"idsServicios\": [3, 4, 2]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/2",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets", "2"]
+            },
+            "description": "Agrega o quita servicios del ticket y recalcula el Total. Los servicios que ya estaban conservan su precio original. Respuesta esperada: 200 OK."
+          }
+        },
+        {
+          "name": "1.9 PUT id inexistente (error)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"EnProceso\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets", "999"]
+            },
+            "description": "Respuesta esperada: 404 Not Found."
+          }
+        },
+        {
+          "name": "1.10 PATCH cambiar solo el estado",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "\"Terminado\"" },
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/2/estado",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets", "2", "estado"]
+            },
+            "description": "Cambia únicamente el estado. Entregado y Cancelado son estados finales: salir de ellos devuelve 400. Respuesta esperada: 200 OK."
+          }
+        },
+        {
+          "name": "1.11 DELETE eliminar",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets", "3"]
+            },
+            "description": "Elimina el ticket y sus servicios asociados (usa el id creado en 1.5). Los tickets Entregados no se pueden eliminar (400). Respuesta esperada: 204 No Content."
+          }
+        },
+        {
+          "name": "1.12 DELETE id inexistente (error)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets", "999"]
+            },
+            "description": "Respuesta esperada: 404 Not Found."
+          }
+        }
+      ]
     },
     {
-      "name": "10 DELETE Tickets - Eliminar (caso válido)",
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/tickets/3",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "3"]
+      "name": "2. Clientes",
+      "item": [
+        {
+          "name": "2.1 GET todos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes"]
+            },
+            "description": "Respuesta esperada: 200 OK con el número de vehículos de cada cliente."
+          }
         },
-        "description": "Elimina el ticket indicado junto con sus servicios asociados (usa el id devuelto por la prueba 04). Respuesta esperada: 204 No Content. Regla de negocio: los tickets Entregados no pueden eliminarse (400)."
-      }
+        {
+          "name": "2.2 GET por id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes", "1"]
+            },
+            "description": "Respuesta esperada: 200 OK."
+          }
+        },
+        {
+          "name": "2.3 POST crear",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Laura\",\n  \"apellidos\": \"Mendoza Ruiz\",\n  \"telefono\": \"6627778899\",\n  \"correo\": \"laura.mendoza@example.com\",\n  \"direccion\": \"Blvd. Solidaridad 890\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes"]
+            },
+            "description": "Respuesta esperada: 201 Created."
+          }
+        },
+        {
+          "name": "2.4 POST correo inválido (error)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ana\",\n  \"apellidos\": \"Prueba\",\n  \"correo\": \"esto-no-es-un-correo\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes"]
+            },
+            "description": "Respuesta esperada: 400 Bad Request con el error de formato del correo."
+          }
+        },
+        {
+          "name": "2.5 PUT actualizar",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan Carlos\",\n  \"apellidos\": \"Pérez García\",\n  \"telefono\": \"6621234567\",\n  \"correo\": \"juan.perez@example.com\",\n  \"direccion\": \"Calle Reforma 123, Col. Centro\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes", "1"]
+            },
+            "description": "Respuesta esperada: 200 OK."
+          }
+        },
+        {
+          "name": "2.6 DELETE con vehículos (error)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes", "1"]
+            },
+            "description": "Regla de negocio: no se puede borrar un cliente con vehículos registrados. Respuesta esperada: 400 Bad Request."
+          }
+        }
+      ]
     },
     {
-      "name": "11 DELETE Tickets - Id inexistente (error)",
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/tickets/999",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "tickets", "999"]
+      "name": "3. Vehículos",
+      "item": [
+        {
+          "name": "3.1 GET todos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehiculos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehiculos"]
+            },
+            "description": "Respuesta esperada: 200 OK."
+          }
         },
-        "description": "El ticket 999 no existe. Respuesta esperada: 404 Not Found."
-      }
+        {
+          "name": "3.2 GET filtrado por cliente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehiculos?idCliente=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehiculos"],
+              "query": [{ "key": "idCliente", "value": "1" }]
+            },
+            "description": "Respuesta esperada: 200 OK con los vehículos de ese cliente."
+          }
+        },
+        {
+          "name": "3.3 POST crear",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": 2,\n  \"marca\": \"Honda\",\n  \"modelo\": \"Civic\",\n  \"anio\": 2021,\n  \"placas\": \"HND-456-K\",\n  \"color\": \"Azul\",\n  \"numeroSerie\": \"1HGBH41JXMN109186\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vehiculos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehiculos"]
+            },
+            "description": "Respuesta esperada: 201 Created. Las placas y el VIN se guardan en mayúsculas."
+          }
+        },
+        {
+          "name": "3.4 POST placas repetidas (error)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": 2,\n  \"marca\": \"Mazda\",\n  \"modelo\": \"3\",\n  \"anio\": 2020,\n  \"placas\": \"ABC-123-A\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vehiculos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehiculos"]
+            },
+            "description": "Las placas son únicas en el taller. Respuesta esperada: 400 Bad Request."
+          }
+        },
+        {
+          "name": "3.5 POST VIN inválido (error)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": 2,\n  \"marca\": \"Kia\",\n  \"modelo\": \"Rio\",\n  \"anio\": 2020,\n  \"placas\": \"KIA-777-B\",\n  \"numeroSerie\": \"ABC12\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vehiculos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehiculos"]
+            },
+            "description": "El VIN debe tener exactamente 17 caracteres y no admite las letras I, O ni Q. Respuesta esperada: 400 Bad Request."
+          }
+        },
+        {
+          "name": "3.6 DELETE con tickets (error)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehiculos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehiculos", "1"]
+            },
+            "description": "No se borra un vehículo con tickets en el historial. Respuesta esperada: 400 Bad Request."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Mecánicos",
+      "item": [
+        {
+          "name": "4.1 GET todos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/mecanicos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "mecanicos"]
+            },
+            "description": "Respuesta esperada: 200 OK con el total de tickets y los que tiene pendientes."
+          }
+        },
+        {
+          "name": "4.2 GET solo activos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/mecanicos?soloActivos=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "mecanicos"],
+              "query": [{ "key": "soloActivos", "value": "true" }]
+            },
+            "description": "Respuesta esperada: 200 OK."
+          }
+        },
+        {
+          "name": "4.3 POST crear",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Pedro\",\n  \"apellidos\": \"Salazar Ochoa\",\n  \"especialidad\": \"Aire acondicionado\",\n  \"telefono\": \"6623334455\",\n  \"activo\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/mecanicos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "mecanicos"]
+            },
+            "description": "Respuesta esperada: 201 Created."
+          }
+        },
+        {
+          "name": "4.4 PUT dar de baja con trabajo pendiente (error)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Roberto\",\n  \"apellidos\": \"Domínguez Ríos\",\n  \"especialidad\": \"Motor y transmisión\",\n  \"telefono\": \"6621112233\",\n  \"activo\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/mecanicos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "mecanicos", "1"]
+            },
+            "description": "No se puede desactivar a un mecánico con tickets sin entregar. Respuesta esperada: 400 Bad Request."
+          }
+        },
+        {
+          "name": "4.5 DELETE mecánico sin tickets",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/mecanicos/4",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "mecanicos", "4"]
+            },
+            "description": "Si el mecánico nunca atendió tickets se elimina (204). Si tiene historial se da de baja lógica (200 con mensaje explicativo)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Servicios",
+      "item": [
+        {
+          "name": "5.1 GET catálogo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/servicios",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "servicios"]
+            },
+            "description": "Respuesta esperada: 200 OK con las veces que se ha aplicado cada servicio."
+          }
+        },
+        {
+          "name": "5.2 POST crear",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cambio de clutch\",\n  \"descripcion\": \"Kit completo de embrague\",\n  \"precio\": 4500,\n  \"tiempoEstimadoMin\": 300,\n  \"activo\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/servicios",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "servicios"]
+            },
+            "description": "Respuesta esperada: 201 Created."
+          }
+        },
+        {
+          "name": "5.3 POST nombre repetido (error)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cambio de aceite\",\n  \"precio\": 900\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/servicios",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "servicios"]
+            },
+            "description": "Los nombres del catálogo no se repiten. Respuesta esperada: 400 Bad Request."
+          }
+        },
+        {
+          "name": "5.4 PUT cambiar precio",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Cambio de aceite\",\n  \"descripcion\": \"Incluye filtro y hasta 5 litros de aceite sintético\",\n  \"precio\": 950,\n  \"tiempoEstimadoMin\": 45,\n  \"activo\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/servicios/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "servicios", "1"]
+            },
+            "description": "Subir el precio NO cambia el total de los tickets ya creados: cada ticket guarda el PrecioAplicado del momento. Respuesta esperada: 200 OK."
+          }
+        },
+        {
+          "name": "5.5 DELETE servicio ya usado (baja lógica)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/servicios/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "servicios", "3"]
+            },
+            "description": "Si el servicio ya se aplicó en tickets se desactiva en lugar de borrarlo (200 con mensaje). Si nunca se usó, se elimina (204)."
+          }
+        }
+      ]
     }
   ]
 }

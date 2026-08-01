@@ -1,0 +1,57 @@
+@model GestionServiciosAutomotrices.API.Models.Mecanico
+@{
+    ViewData["Title"] = "Dar de baja mecánico";
+    var pendientes = Model.Tickets.Count(t => t.Estado != EstadoTicket.Entregado && t.Estado != EstadoTicket.Cancelado);
+    var tieneHistorial = Model.Tickets.Any();
+}
+
+<h1 class="h3 mb-3 text-danger">Dar de baja mecánico</h1>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Nombre</dt>
+                    <dd class="col-sm-8">@Model.Nombre @Model.Apellidos</dd>
+
+                    <dt class="col-sm-4">Especialidad</dt>
+                    <dd class="col-sm-8">@(Model.Especialidad ?? "General")</dd>
+
+                    <dt class="col-sm-4">Tickets</dt>
+                    <dd class="col-sm-8">@Model.Tickets.Count (@pendientes sin entregar)</dd>
+                </dl>
+
+                @if (pendientes > 0)
+                {
+                    <div class="alert alert-warning mb-3">
+                        Tiene <strong>@pendientes ticket(s) sin entregar</strong>. Reasígnalos a otro mecánico
+                        antes de darlo de baja.
+                    </div>
+                    <a asp-action="Details" asp-route-id="@Model.IdMecanico" class="btn btn-outline-secondary">Ver tickets</a>
+                }
+                else
+                {
+                    @if (tieneHistorial)
+                    {
+                        <div class="alert alert-info mb-3">
+                            Este mecánico tiene <strong>@Model.Tickets.Count ticket(s)</strong> en el historial,
+                            así que se marcará como <strong>inactivo</strong> en lugar de borrarlo
+                            (así el historial del taller sigue mostrando quién atendió cada servicio).
+                        </div>
+                    }
+                    else
+                    {
+                        <p>Este mecánico no tiene tickets, se eliminará por completo. La acción no se puede deshacer.</p>
+                    }
+                    <form asp-action="Delete" asp-route-id="@Model.IdMecanico" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">
+                            @(tieneHistorial ? "Sí, dar de baja" : "Sí, eliminar")
+                        </button>
+                    </form>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

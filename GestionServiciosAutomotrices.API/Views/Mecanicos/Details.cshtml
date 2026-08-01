@@ -1,0 +1,83 @@
+@model GestionServiciosAutomotrices.API.Models.Mecanico
+@{
+    ViewData["Title"] = $"{Model.Nombre} {Model.Apellidos}";
+    var pendientes = Model.Tickets.Count(t => t.Estado != EstadoTicket.Entregado && t.Estado != EstadoTicket.Cancelado);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">
+        @Model.Nombre @Model.Apellidos
+        @if (Model.Activo)
+        {
+            <span class="badge bg-success align-middle">Activo</span>
+        }
+        else
+        {
+            <span class="badge bg-secondary align-middle">Inactivo</span>
+        }
+    </h1>
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model.IdMecanico" class="btn btn-outline-secondary">Editar</a>
+        <a asp-action="Index" class="btn btn-outline-dark">Volver a la lista</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold">Datos del mecánico</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Especialidad</dt>
+                    <dd class="col-sm-7">@(Model.Especialidad ?? "General")</dd>
+
+                    <dt class="col-sm-5">Teléfono</dt>
+                    <dd class="col-sm-7">@(Model.Telefono ?? "—")</dd>
+
+                    <dt class="col-sm-5">Tickets atendidos</dt>
+                    <dd class="col-sm-7">@Model.Tickets.Count</dd>
+
+                    <dt class="col-sm-5">Pendientes</dt>
+                    <dd class="col-sm-7">
+                        @if (pendientes > 0)
+                        {
+                            <span class="badge bg-warning text-dark">@pendientes sin entregar</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Ninguno</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold">Tickets asignados</div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <tbody>
+                        @if (!Model.Tickets.Any())
+                        {
+                            <tr><td class="text-muted text-center py-3">Este mecánico no tiene tickets asignados.</td></tr>
+                        }
+                        @foreach (var t in Model.Tickets.OrderByDescending(t => t.FechaCreacion))
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-controller="Tickets" asp-action="Details" asp-route-id="@t.IdTicket"
+                                       class="text-decoration-none fw-semibold">@t.Folio</a>
+                                </td>
+                                <td class="text-muted small">@t.Vehiculo?.Marca @t.Vehiculo?.Modelo</td>
+                                <td><partial name="_EstadoBadge" model="t.Estado" /></td>
+                                <td class="text-end">@t.Total.ToString("C")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

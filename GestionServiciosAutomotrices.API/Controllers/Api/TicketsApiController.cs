@@ -22,19 +22,50 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
         }
 
         // GET: api/tickets
+        // Filtros opcionales: ?estado=Abierto&idMecanico=2&pagina=1&porPagina=20
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets()
+        public async Task<ActionResult<object>> GetTickets(
+            [FromQuery] EstadoTicket? estado,
+            [FromQuery] int? idMecanico,
+            [FromQuery] int pagina = 1,
+            [FromQuery] int porPagina = 20)
         {
-            // TODO (Fase 3): Agregar filtros por estado y por mecánico (?estado=Abierto&idMecanico=2)
-            // y paginación cuando la tabla crezca.
-            var tickets = await _context.Tickets
+            if (pagina < 1) pagina = 1;
+            porPagina = Math.Clamp(porPagina, 1, 100);
+
+            var consulta = _context.Tickets
                 .Include(t => t.Vehiculo)
                     .ThenInclude(v => v!.Cliente)
                 .Include(t => t.Mecanico)
+                .AsQueryable();
+
+            if (estado.HasValue)
+            {
+                consulta = consulta.Where(t => t.Estado == estado.Value);
+            }
+
+            if (idMecanico.HasValue)
+            {
+                consulta = consulta.Where(t => t.IdMecanico == idMecanico.Value);
+            }
+
+            var totalRegistros = await consulta.CountAsync();
+
+            var tickets = await consulta
                 .OrderByDescending(t => t.FechaCreacion)
+                .Skip((pagina - 1) * porPagina)
+                .Take(porPagina)
                 .ToListAsync();
 
-            return Ok(tickets.Select(MapearADto));
+            // La respuesta incluye los datos de paginación además de los tickets.
+            return Ok(new
+            {
+                pagina,
+                porPagina,
+                totalRegistros,
+                totalPaginas = (int)Math.Ceiling(totalRegistros / (double)porPagina),
+                datos = tickets.Select(MapearADto)
+            });
         }
 
         // GET: api/tickets/5
@@ -65,6 +96,16 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             if (vehiculo == null)
             {
                 return BadRequest(new { mensaje = $"El vehículo con id {dto.IdVehiculo} no está registrado." });
+            }
+
+            // Un vehículo no puede tener dos órdenes de servicio abiertas a la vez.
+            var ticketAbierto = await TicketReglas.BuscarTicketAbiertoDelVehiculoAsync(_context, dto.IdVehiculo);
+            if (ticketAbierto != null)
+            {
+                return BadRequest(new
+                {
+                    mensaje = $"El vehículo ya tiene el ticket {ticketAbierto.Folio} sin cerrar (estado {ticketAbierto.Estado})."
+                });
             }
 
             if (dto.IdMecanico.HasValue)
@@ -139,7 +180,12 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
         [HttpPut("{id:int}")]
         public async Task<ActionResult<TicketDto>> ActualizarTicket(int id, TicketActualizarDto dto)
         {
-            var ticket = await BuscarTicketConRelaciones(id);
+            var ticket = await _context.Tickets
+                .Include(t => t.Vehiculo)
+                    .ThenInclude(v => v!.Cliente)
+                .Include(t => t.Mecanico)
+                .Include(t => t.TicketServicios)
+                .FirstOrDefaultAsync(t => t.IdTicket == id);
 
             if (ticket == null)
             {
@@ -183,6 +229,17 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             if (dto.Observaciones != null)
             {
                 ticket.Observaciones = dto.Observaciones;
+            }
+
+            // Si el cliente mandó la lista de servicios, se reemplaza el detalle
+            // completo del ticket y se recalcula el total.
+            if (dto.IdsServicios != null)
+            {
+                var errorServicios = await TicketReglas.SincronizarServiciosAsync(_context, ticket, dto.IdsServicios);
+                if (errorServicios != null)
+                {
+                    return BadRequest(new { mensaje = errorServicios });
+                }
             }
 
             await _context.SaveChangesAsync();

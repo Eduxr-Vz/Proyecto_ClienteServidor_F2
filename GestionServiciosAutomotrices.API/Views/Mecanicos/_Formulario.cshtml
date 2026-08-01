@@ -1,0 +1,35 @@
+@model GestionServiciosAutomotrices.API.DTOs.MecanicoGuardarDto
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="Nombre" class="form-label"></label>
+        <input asp-for="Nombre" class="form-control" placeholder="Roberto" />
+        <span asp-validation-for="Nombre" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="Apellidos" class="form-label"></label>
+        <input asp-for="Apellidos" class="form-control" placeholder="Domínguez Ríos" />
+        <span asp-validation-for="Apellidos" class="text-danger small"></span>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-7 mb-3">
+        <label asp-for="Especialidad" class="form-label"></label>
+        <input asp-for="Especialidad" class="form-control" placeholder="Motor y transmisión" />
+        <span asp-validation-for="Especialidad" class="text-danger small"></span>
+    </div>
+    <div class="col-md-5 mb-3">
+        <label asp-for="Telefono" class="form-label"></label>
+        <input asp-for="Telefono" class="form-control" placeholder="6621112233" />
+        <span asp-validation-for="Telefono" class="text-danger small"></span>
+    </div>
+</div>
+
+<div class="form-check mb-3">
+    <input asp-for="Activo" class="form-check-input" />
+    <label asp-for="Activo" class="form-check-label"></label>
+    <span asp-validation-for="Activo" class="text-danger small d-block"></span>
+</div>

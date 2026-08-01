@@ -1,0 +1,46 @@
+@model GestionServiciosAutomotrices.API.Models.Servicio
+@{
+    ViewData["Title"] = "Eliminar servicio";
+    var seUso = Model.TicketServicios.Any();
+}
+
+<h1 class="h3 mb-3 text-danger">Eliminar servicio</h1>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Servicio</dt>
+                    <dd class="col-sm-8">@Model.Nombre</dd>
+
+                    <dt class="col-sm-4">Precio</dt>
+                    <dd class="col-sm-8">@Model.Precio.ToString("C")</dd>
+
+                    <dt class="col-sm-4">Veces aplicado</dt>
+                    <dd class="col-sm-8">@Model.TicketServicios.Count</dd>
+                </dl>
+
+                @if (seUso)
+                {
+                    <div class="alert alert-info mb-3">
+                        Este servicio se aplicó en <strong>@Model.TicketServicios.Count ticket(s)</strong>,
+                        así que se marcará como <strong>inactivo</strong> en lugar de borrarlo
+                        (los tickets del historial conservan su detalle y su precio).
+                    </div>
+                }
+                else
+                {
+                    <p>Este servicio nunca se ha aplicado, se eliminará por completo. La acción no se puede deshacer.</p>
+                }
+
+                <form asp-action="Delete" asp-route-id="@Model.IdServicio" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        @(seUso ? "Sí, desactivar" : "Sí, eliminar")
+                    </button>
+                </form>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </div>
+    </div>
+</div>

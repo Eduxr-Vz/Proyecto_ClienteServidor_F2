@@ -23,5 +23,10 @@ namespace GestionServiciosAutomotrices.API.DTOs
 
         [StringLength(500)]
         public string? Observaciones { get; set; }
+
+        // Lista completa de servicios que debe tener el ticket después de la
+        // actualización. Si viene null no se toca el detalle; si viene con
+        // valores (incluso vacía) reemplaza los servicios y recalcula el total.
+        public List<int>? IdsServicios { get; set; }
     }
 }

@@ -1,0 +1,68 @@
+@model GestionServiciosAutomotrices.API.Models.Cliente
+@{
+    ViewData["Title"] = $"{Model.Nombre} {Model.Apellidos}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">@Model.Nombre @Model.Apellidos</h1>
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model.IdCliente" class="btn btn-outline-secondary">Editar</a>
+        <a asp-action="Index" class="btn btn-outline-dark">Volver a la lista</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold">Datos de contacto</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Teléfono</dt>
+                    <dd class="col-sm-7">@(Model.Telefono ?? "—")</dd>
+
+                    <dt class="col-sm-5">Correo</dt>
+                    <dd class="col-sm-7">@(Model.Correo ?? "—")</dd>
+
+                    <dt class="col-sm-5">Dirección</dt>
+                    <dd class="col-sm-7">@(Model.Direccion ?? "—")</dd>
+
+                    <dt class="col-sm-5">Cliente desde</dt>
+                    <dd class="col-sm-7">@Model.FechaRegistro.ToString("dd/MM/yyyy")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Vehículos registrados</span>
+                <a asp-controller="Vehiculos" asp-action="Create" asp-route-idCliente="@Model.IdCliente"
+                   class="btn btn-sm btn-outline-primary">+ Agregar vehículo</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <tbody>
+                        @if (!Model.Vehiculos.Any())
+                        {
+                            <tr><td class="text-muted text-center py-3">Este cliente no tiene vehículos registrados.</td></tr>
+                        }
+                        @foreach (var v in Model.Vehiculos)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-controller="Vehiculos" asp-action="Details" asp-route-id="@v.IdVehiculo"
+                                       class="text-decoration-none">
+                                        @v.Marca @v.Modelo @v.Anio
+                                    </a>
+                                </td>
+                                <td class="text-muted">@v.Placas</td>
+                                <td class="text-muted">@(v.Color ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

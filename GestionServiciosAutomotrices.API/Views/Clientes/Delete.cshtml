@@ -1,0 +1,44 @@
+@model GestionServiciosAutomotrices.API.Models.Cliente
+@{
+    ViewData["Title"] = "Eliminar cliente";
+    var tieneVehiculos = Model.Vehiculos.Any();
+}
+
+<h1 class="h3 mb-3 text-danger">Eliminar cliente</h1>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body">
+                <p>¿Seguro que quieres eliminar este cliente? Esta acción no se puede deshacer.</p>
+
+                <dl class="row">
+                    <dt class="col-sm-4">Nombre</dt>
+                    <dd class="col-sm-8">@Model.Nombre @Model.Apellidos</dd>
+
+                    <dt class="col-sm-4">Teléfono</dt>
+                    <dd class="col-sm-8">@(Model.Telefono ?? "—")</dd>
+
+                    <dt class="col-sm-4">Vehículos</dt>
+                    <dd class="col-sm-8">@Model.Vehiculos.Count</dd>
+                </dl>
+
+                @if (tieneVehiculos)
+                {
+                    <div class="alert alert-warning mb-3">
+                        Este cliente tiene <strong>@Model.Vehiculos.Count vehículo(s)</strong> registrado(s).
+                        Para eliminarlo primero hay que eliminar sus vehículos.
+                    </div>
+                    <a asp-action="Details" asp-route-id="@Model.IdCliente" class="btn btn-outline-secondary">Ver cliente</a>
+                }
+                else
+                {
+                    <form asp-action="Delete" asp-route-id="@Model.IdCliente" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                    </form>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

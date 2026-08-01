@@ -1,7 +1,10 @@
 /* ============================================================
    Proyecto: Gestión de Servicios Automotrices
-   Script de creación de la base de datos - FASE 2
-   Motor: SQL Server (probado en SQL Server Express)
+   Script de creación de la base de datos - FASE 3
+   Motor: SQL Server (probado en LocalDB y SQL Server Express)
+
+   Ejecutar desde la terminal:
+     sqlcmd -S "(localdb)\MSSQLLocalDB" -i CreacionBD.sql
 
    NOTA: En fases posteriores este script se reemplazará por
    migraciones de Entity Framework Core.
@@ -143,10 +146,13 @@ INSERT INTO Tickets (Folio, IdVehiculo, IdMecanico, DescripcionProblema, Estado,
 GO
 
 /* ============================================================
-   PENDIENTE (Fase 3):
+   PENDIENTE (siguientes fases):
    - Procedimientos almacenados para reportes.
    - Índices adicionales según las consultas más frecuentes.
+   - Tablas de usuarios y roles para la autenticación.
 
-   NOTA: Tickets.Total se calcula en la API al crear el ticket,
-   sumando el PrecioAplicado de sus registros en TicketServicios.
+   NOTA: Tickets.Total lo calcula la aplicación al crear o editar
+   el ticket, sumando el PrecioAplicado de sus registros en
+   TicketServicios (así el histórico no cambia si el catálogo sube
+   de precio).
    ============================================================ */

@@ -20,15 +20,43 @@ namespace GestionServiciosAutomotrices.API.Controllers
             _context = context;
         }
 
-        // GET: /Tickets
-        public async Task<IActionResult> Index()
+        // GET: /Tickets?estado=Abierto&idMecanico=2&pagina=1
+        public async Task<IActionResult> Index(EstadoTicket? estado, int? idMecanico, int pagina = 1)
         {
-            var tickets = await _context.Tickets
+            const int porPagina = 10;
+            if (pagina < 1) pagina = 1;
+
+            var consulta = _context.Tickets
                 .Include(t => t.Vehiculo)
                     .ThenInclude(v => v!.Cliente)
                 .Include(t => t.Mecanico)
+                .AsQueryable();
+
+            if (estado.HasValue)
+            {
+                consulta = consulta.Where(t => t.Estado == estado.Value);
+            }
+
+            if (idMecanico.HasValue)
+            {
+                consulta = consulta.Where(t => t.IdMecanico == idMecanico.Value);
+            }
+
+            var totalRegistros = await consulta.CountAsync();
+            var totalPaginas = (int)Math.Ceiling(totalRegistros / (double)porPagina);
+
+            var tickets = await consulta
                 .OrderByDescending(t => t.FechaCreacion)
+                .Skip((pagina - 1) * porPagina)
+                .Take(porPagina)
                 .ToListAsync();
+
+            ViewBag.Estado = estado;
+            ViewBag.IdMecanico = idMecanico;
+            ViewBag.Pagina = pagina;
+            ViewBag.TotalPaginas = totalPaginas;
+            ViewBag.TotalRegistros = totalRegistros;
+            ViewBag.Mecanicos = new SelectList(await ListaMecanicosAsync(), "IdMecanico", "Texto", idMecanico);
 
             return View(tickets);
         }
@@ -70,6 +98,16 @@ namespace GestionServiciosAutomotrices.API.Controllers
             if (vehiculo == null)
             {
                 ModelState.AddModelError(nameof(dto.IdVehiculo), "El vehículo seleccionado no está registrado.");
+            }
+            else
+            {
+                // Un vehículo no puede tener dos órdenes de servicio abiertas a la vez.
+                var ticketAbierto = await TicketReglas.BuscarTicketAbiertoDelVehiculoAsync(_context, dto.IdVehiculo);
+                if (ticketAbierto != null)
+                {
+                    ModelState.AddModelError(nameof(dto.IdVehiculo),
+                        $"Este vehículo ya tiene el ticket {ticketAbierto.Folio} sin cerrar (estado {ticketAbierto.Estado}).");
+                }
             }
 
             if (dto.IdMecanico.HasValue)
@@ -132,6 +170,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         {
             var ticket = await _context.Tickets
                 .Include(t => t.Vehiculo)
+                .Include(t => t.TicketServicios)
                 .FirstOrDefaultAsync(t => t.IdTicket == id);
 
             if (ticket == null)
@@ -145,7 +184,8 @@ namespace GestionServiciosAutomotrices.API.Controllers
                 Estado = ticket.Estado,
                 FechaEstimadaEntrega = ticket.FechaEstimadaEntrega,
                 DescripcionProblema = ticket.DescripcionProblema,
-                Observaciones = ticket.Observaciones
+                Observaciones = ticket.Observaciones,
+                IdsServicios = ticket.TicketServicios.Select(ts => ts.IdServicio).ToList()
             };
 
             await CargarDatosEdicionAsync(ticket, dto);
@@ -159,6 +199,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         {
             var ticket = await _context.Tickets
                 .Include(t => t.Vehiculo)
+                .Include(t => t.TicketServicios)
                 .FirstOrDefaultAsync(t => t.IdTicket == id);
 
             if (ticket == null)
@@ -217,9 +258,21 @@ namespace GestionServiciosAutomotrices.API.Controllers
                 ticket.Observaciones = dto.Observaciones;
             }
 
+            // El formulario siempre manda la lista de servicios marcados
+            // (vacía si se desmarcaron todos), así que se sincroniza el detalle.
+            var errorServicios = await TicketReglas.SincronizarServiciosAsync(
+                _context, ticket, dto.IdsServicios ?? new List<int>());
+
+            if (errorServicios != null)
+            {
+                ModelState.AddModelError(nameof(dto.IdsServicios), errorServicios);
+                await CargarDatosEdicionAsync(ticket, dto);
+                return View(dto);
+            }
+
             await _context.SaveChangesAsync();
 
-            TempData["Mensaje"] = $"Ticket {ticket.Folio} actualizado correctamente.";
+            TempData["Mensaje"] = $"Ticket {ticket.Folio} actualizado correctamente. Total: {ticket.Total:C}";
             return RedirectToAction(nameof(Details), new { id });
         }
 
@@ -307,6 +360,14 @@ namespace GestionServiciosAutomotrices.API.Controllers
                 : string.Empty;
             ViewBag.EstadoActual = ticket.Estado;
             ViewBag.Mecanicos = new SelectList(await ListaMecanicosAsync(), "IdMecanico", "Texto", dto.IdMecanico);
+
+            // Servicios activos + los que ya trae el ticket (aunque estén dados de baja),
+            // para poder mostrarlos marcados en el formulario.
+            var yaEnElTicket = ticket.TicketServicios.Select(ts => ts.IdServicio).ToList();
+            ViewBag.Servicios = await _context.Servicios
+                .Where(s => s.Activo || yaEnElTicket.Contains(s.IdServicio))
+                .OrderBy(s => s.Nombre)
+                .ToListAsync();
         }
 
         private async Task<List<object>> ListaMecanicosAsync()

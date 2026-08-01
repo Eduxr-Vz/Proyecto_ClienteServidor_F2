@@ -3,6 +3,9 @@
     ViewData["Title"] = $"Editar {ViewBag.Folio}";
     var estadoActual = (EstadoTicket)ViewBag.EstadoActual;
     var esFinal = estadoActual is EstadoTicket.Entregado or EstadoTicket.Cancelado;
+    var servicios = (List<GestionServiciosAutomotrices.API.Models.Servicio>)ViewBag.Servicios;
+    var seleccionados = Model.IdsServicios ?? new List<int>();
+    var totalActual = servicios.Where(s => seleccionados.Contains(s.IdServicio)).Sum(s => s.Precio);
 }
 
 <h1 class="h3 mb-1">Editar ticket @ViewBag.Folio</h1>
@@ -56,6 +59,35 @@
                         <span asp-validation-for="Observaciones" class="text-danger small"></span>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label">Servicios del ticket</label>
+                        <span asp-validation-for="IdsServicios" class="text-danger small d-block"></span>
+                        <div class="border rounded p-2">
+                            @foreach (var s in servicios)
+                            {
+                                var marcado = seleccionados.Contains(s.IdServicio);
+                                <div class="form-check">
+                                    <input class="form-check-input servicio-check" type="checkbox" name="IdsServicios"
+                                           value="@s.IdServicio" id="servicio-@s.IdServicio"
+                                           data-precio="@s.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                           checked="@(marcado ? "checked" : null)" />
+                                    <label class="form-check-label" for="servicio-@s.IdServicio">
+                                        @s.Nombre <span class="text-muted">— @s.Precio.ToString("C")</span>
+                                        @if (!s.Activo)
+                                        {
+                                            <span class="badge bg-secondary ms-1">inactivo</span>
+                                        }
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                        <div class="form-text">
+                            Al guardar, el total se recalcula:
+                            <strong id="total-preview">@totalActual.ToString("C")</strong>.
+                            Los servicios que ya estaban en el ticket conservan su precio original.
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-primary">Guardar cambios</button>
                     <a asp-action="Details" asp-route-id="@ViewBag.IdTicket" class="btn btn-outline-secondary">Cancelar</a>
                 </form>
@@ -65,7 +97,18 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.20.0/dist/jquery.validate.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js"></script>
+    <partial name="_ValidationScripts" />
+    <script>
+        // Vista previa del total mientras se marcan o desmarcan servicios.
+        document.querySelectorAll('.servicio-check').forEach(function (chk) {
+            chk.addEventListener('change', function () {
+                var total = 0;
+                document.querySelectorAll('.servicio-check:checked').forEach(function (c) {
+                    total += parseFloat(c.dataset.precio);
+                });
+                document.getElementById('total-preview').textContent =
+                    total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+            });
+        });
+    </script>
 }
