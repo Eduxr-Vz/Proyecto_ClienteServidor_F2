@@ -30,7 +30,15 @@ builder.Services.AddControllersWithViews(options =>
 
 // Conexión a SQL Server (la cadena está en appsettings.json).
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sql => sql.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null)));
+// EnableRetryOnFailure reintenta las consultas cuando el servidor tarda en
+// responder. Es importante con LocalDB: se apaga tras unos minutos sin uso y
+// la primera consulta debe esperar a que vuelva a arrancar.
 
 // SignalR: notificaciones en tiempo real hacia los navegadores conectados.
 builder.Services.AddSignalR();
@@ -58,6 +66,10 @@ builder.Services.AddSwaggerGen(c =>
 // TODO (Fase 3): Agregar autenticación con JWT y manejo de roles (admin / recepcionista / mecánico).
 
 var app = builder.Build();
+
+// Crea la base de datos con el script si todavía no existe, para que el
+// proyecto funcione con solo ejecutarlo en cualquier equipo.
+await InicializadorBd.PrepararAsync(app);
 
 // ----- Pipeline HTTP -----
 
