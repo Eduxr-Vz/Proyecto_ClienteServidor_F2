@@ -1,6 +1,7 @@
 using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
+using GestionServiciosAutomotrices.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,10 +16,12 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
     public class TicketsApiController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly INotificadorTickets _notificador;
 
-        public TicketsApiController(AppDbContext context)
+        public TicketsApiController(AppDbContext context, INotificadorTickets notificador)
         {
             _context = context;
+            _notificador = notificador;
         }
 
         // GET: api/tickets
@@ -173,6 +176,8 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             }
             ticket.Vehiculo = vehiculo;
 
+            await _notificador.TicketCreadoAsync(ticket);
+
             return CreatedAtAction(nameof(GetTicket), new { id = ticket.IdTicket }, MapearADto(ticket));
         }
 
@@ -191,6 +196,9 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             {
                 return NotFound(new { mensaje = $"No existe un ticket con id {id}." });
             }
+
+            // Estado previo, para saber si hubo cambio de etapa al notificar.
+            var estadoAnterior = ticket.Estado;
 
             if (dto.IdMecanico.HasValue)
             {
@@ -247,6 +255,15 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             // Se recarga el mecánico por si se reasignó.
             await _context.Entry(ticket).Reference(t => t.Mecanico).LoadAsync();
 
+            if (estadoAnterior != ticket.Estado)
+            {
+                await _notificador.EstadoCambiadoAsync(ticket, estadoAnterior);
+            }
+            else
+            {
+                await _notificador.TicketActualizadoAsync(ticket);
+            }
+
             return Ok(MapearADto(ticket));
         }
 
@@ -269,8 +286,11 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
                 return BadRequest(new { mensaje = error });
             }
 
+            var estadoAnterior = ticket.Estado;
             TicketReglas.AplicarCambioDeEstado(ticket, nuevoEstado);
             await _context.SaveChangesAsync();
+
+            await _notificador.EstadoCambiadoAsync(ticket, estadoAnterior);
 
             return Ok(MapearADto(ticket));
         }
@@ -280,6 +300,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
         public async Task<IActionResult> EliminarTicket(int id)
         {
             var ticket = await _context.Tickets
+                .Include(t => t.Vehiculo)
                 .Include(t => t.TicketServicios)
                 .FirstOrDefaultAsync(t => t.IdTicket == id);
 
@@ -300,6 +321,8 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             _context.TicketServicios.RemoveRange(ticket.TicketServicios);
             _context.Tickets.Remove(ticket);
             await _context.SaveChangesAsync();
+
+            await _notificador.TicketEliminadoAsync(ticket);
 
             return NoContent();
         }

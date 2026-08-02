@@ -1,5 +1,7 @@
 using System.Globalization;
 using GestionServiciosAutomotrices.API.Data;
+using GestionServiciosAutomotrices.API.Hubs;
+using GestionServiciosAutomotrices.API.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 
@@ -14,7 +16,11 @@ var builder = WebApplication.CreateBuilder(args);
 // ----- Servicios -----
 
 // Controladores de API + vistas MVC (interfaz web) en el mismo proyecto.
-builder.Services.AddControllersWithViews()
+builder.Services.AddControllersWithViews(options =>
+    {
+        // Deja el contador de tickets pendientes listo para el menú.
+        options.Filters.Add<ContadorPendientesFilter>();
+    })
     .AddJsonOptions(options =>
     {
         // Los enums (como EstadoTicket) se devuelven como texto en lugar de números.
@@ -26,6 +32,15 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// SignalR: notificaciones en tiempo real hacia los navegadores conectados.
+builder.Services.AddSignalR();
+
+// Servicio que publica los avisos de los tickets.
+// TODO (Fase 4): Para enviar los avisos a través de RabbitMQ basta con
+// registrar aquí otra implementación de INotificadorTickets; los
+// controladores no cambian porque dependen de la interfaz, no de SignalR.
+builder.Services.AddScoped<INotificadorTickets, NotificadorSignalR>();
+
 // Swagger para documentar y probar la API.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -33,9 +48,9 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "API Gestión de Servicios Automotrices",
-        Version = "v1 (Fase 2 - CRUD completo)",
+        Version = "v1 (Fase 3 - CRUD completo)",
         Description = "API REST para la administración de un taller mecánico. " +
-                      "CRUD completo de tickets: crear, consultar, actualizar y eliminar."
+                      "CRUD completo de tickets, clientes, vehículos, mecánicos y servicios."
     });
 });
 
@@ -60,6 +75,9 @@ app.UseAuthorization();
 
 // Rutas con atributos (API REST en /api/tickets).
 app.MapControllers();
+
+// Punto de conexión de SignalR al que se enganchan los navegadores.
+app.MapHub<NotificacionesHub>("/hubs/notificaciones");
 
 // Ruta convencional de las vistas MVC; la raíz del sitio muestra la lista de tickets.
 app.MapControllerRoute(

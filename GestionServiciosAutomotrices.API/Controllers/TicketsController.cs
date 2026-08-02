@@ -1,6 +1,7 @@
 using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
+using GestionServiciosAutomotrices.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +15,12 @@ namespace GestionServiciosAutomotrices.API.Controllers
     public class TicketsController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly INotificadorTickets _notificador;
 
-        public TicketsController(AppDbContext context)
+        public TicketsController(AppDbContext context, INotificadorTickets notificador)
         {
             _context = context;
+            _notificador = notificador;
         }
 
         // GET: /Tickets?estado=Abierto&idMecanico=2&pagina=1
@@ -161,6 +164,10 @@ namespace GestionServiciosAutomotrices.API.Controllers
             _context.Tickets.Add(ticket);
             await _context.SaveChangesAsync();
 
+            // Aviso en tiempo real a los demás navegadores conectados.
+            ticket.Vehiculo = vehiculo;
+            await _notificador.TicketCreadoAsync(ticket);
+
             TempData["Mensaje"] = $"Ticket {ticket.Folio} creado correctamente.";
             return RedirectToAction(nameof(Details), new { id = ticket.IdTicket });
         }
@@ -206,6 +213,10 @@ namespace GestionServiciosAutomotrices.API.Controllers
             {
                 return NotFound();
             }
+
+            // Se guarda el estado previo para saber si hubo cambio de etapa
+            // y avisar en consecuencia por SignalR.
+            var estadoAnterior = ticket.Estado;
 
             if (dto.IdMecanico.HasValue)
             {
@@ -272,6 +283,15 @@ namespace GestionServiciosAutomotrices.API.Controllers
 
             await _context.SaveChangesAsync();
 
+            if (estadoAnterior != ticket.Estado)
+            {
+                await _notificador.EstadoCambiadoAsync(ticket, estadoAnterior);
+            }
+            else
+            {
+                await _notificador.TicketActualizadoAsync(ticket);
+            }
+
             TempData["Mensaje"] = $"Ticket {ticket.Folio} actualizado correctamente. Total: {ticket.Total:C}";
             return RedirectToAction(nameof(Details), new { id });
         }
@@ -299,6 +319,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var ticket = await _context.Tickets
+                .Include(t => t.Vehiculo)
                 .Include(t => t.TicketServicios)
                 .FirstOrDefaultAsync(t => t.IdTicket == id);
 
@@ -317,6 +338,8 @@ namespace GestionServiciosAutomotrices.API.Controllers
             _context.TicketServicios.RemoveRange(ticket.TicketServicios);
             _context.Tickets.Remove(ticket);
             await _context.SaveChangesAsync();
+
+            await _notificador.TicketEliminadoAsync(ticket);
 
             TempData["Mensaje"] = $"Ticket {ticket.Folio} eliminado.";
             return RedirectToAction(nameof(Index));

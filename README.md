@@ -3,11 +3,12 @@
 Proyecto de la materia **Clientes-Servidor**.
 Sistema para administrar un taller mecánico: clientes, sus vehículos, los mecánicos, el catálogo de servicios y los tickets (órdenes de servicio).
 
-> **Estado: Fase 3.** CRUD completo de las cinco entidades, disponible de dos formas **en un solo proyecto**: una **interfaz web MVC** (vistas Razor con Bootstrap) y una **API REST** (JSON). Ambas comparten los modelos, el DbContext y las reglas de negocio.
+> **Estado: Fase 3.** CRUD completo de las cinco entidades, disponible de dos formas **en un solo proyecto**: una **interfaz web MVC** (vistas Razor con Bootstrap) y una **API REST** (JSON). Ambas comparten los modelos, el DbContext y las reglas de negocio. Incluye **notificaciones en tiempo real con SignalR**.
 
 ## Tecnologías
 
 - ASP.NET Core (.NET 10): MVC con vistas Razor + Web API en el mismo proyecto
+- SignalR (notificaciones en tiempo real por WebSockets)
 - Entity Framework Core 10 (SQL Server)
 - SQL Server LocalDB (o SQL Server Express)
 - Bootstrap 5 (interfaz web)
@@ -51,6 +52,13 @@ Proyecto_ClientesServidor/
 │   ├── Data/
 │   │   ├── AppDbContext.cs
 │   │   └── TicketReglas.cs           # Reglas de negocio compartidas
+│   ├── Hubs/
+│   │   └── NotificacionesHub.cs      # Hub de SignalR (tiempo real)
+│   ├── Services/
+│   │   ├── INotificadorTickets.cs    # Contrato de notificaciones
+│   │   └── NotificadorSignalR.cs     # Implementación con SignalR
+│   ├── wwwroot/js/
+│   │   └── notificaciones.js         # Cliente de SignalR en el navegador
 │   ├── Program.cs
 │   └── appsettings.json              # Cadena de conexión
 ├── database/
@@ -95,6 +103,25 @@ Proyecto_ClientesServidor/
 | Servicios    | `/Servicios` (catálogo) con filtro de activos               |
 
 Cada sección tiene sus cinco vistas: lista (Index), detalle (Details), alta (Create), edición (Edit) y confirmación de baja (Delete). Los formularios validan con DataAnnotations —las mismas reglas que usa la API— y muestran los errores junto a cada campo.
+
+## Notificaciones en tiempo real (SignalR)
+
+Cuando alguien crea, actualiza, cambia de estado o elimina un ticket, **todos los navegadores que tengan la aplicación abierta reciben el aviso al instante**, sin recargar la página. Además, el contador de tickets pendientes del menú se actualiza solo.
+
+Funciona igual si el cambio se hace desde la interfaz web o desde la API (Postman/Swagger): en ambos casos el aviso llega a los navegadores conectados.
+
+**Cómo está armado**
+
+| Pieza | Archivo | Qué hace |
+|---|---|---|
+| Hub | `Hubs/NotificacionesHub.cs` | Punto de conexión permanente en `/hubs/notificaciones` |
+| Contrato | `Services/INotificadorTickets.cs` | Interfaz de la que dependen los controladores |
+| Emisor | `Services/NotificadorSignalR.cs` | Arma el mensaje y lo envía por SignalR |
+| Cliente | `wwwroot/js/notificaciones.js` | Recibe los avisos y los muestra como *toast* |
+
+Los controladores dependen de la **interfaz**, no de SignalR. Gracias a eso, agregar RabbitMQ en la siguiente fase solo requiere registrar otra implementación en `Program.cs`, sin tocar los controladores.
+
+**Para probarlo:** abre la aplicación en dos ventanas del navegador y crea o edita un ticket en una; el aviso aparecerá en la otra. El indicador «En vivo» del menú confirma que la conexión está activa (si se cae, SignalR reconecta solo).
 
 ## Endpoints de la API REST
 
@@ -143,10 +170,11 @@ La variable `baseUrl` apunta a `https://localhost:7122`. Si Postman marca un err
 
 ## Pendientes para siguientes fases
 
+- [ ] RabbitMQ como intermediario de las notificaciones (patrón productor/consumidor).
 - [ ] Autenticación con JWT y roles (admin / recepcionista / mecánico).
 - [ ] CORS para consumir la API desde un cliente externo.
 - [ ] Migraciones de EF Core en lugar del script SQL manual.
 - [ ] Reportes: ingresos por periodo y productividad por mecánico.
 
 ---
-*Fase 3: CRUD completo de las cinco entidades con interfaz web MVC y API REST en un solo proyecto, probado en navegador y Postman.*
+*Fase 3: CRUD completo de las cinco entidades con interfaz web MVC y API REST en un solo proyecto, más notificaciones en tiempo real con SignalR. Probado en navegador y Postman.*
