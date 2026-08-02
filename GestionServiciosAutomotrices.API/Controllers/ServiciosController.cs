@@ -1,6 +1,7 @@
 using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
+using GestionServiciosAutomotrices.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,10 +13,12 @@ namespace GestionServiciosAutomotrices.API.Controllers
     public class ServiciosController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly INotificadorEventos _notificador;
 
-        public ServiciosController(AppDbContext context)
+        public ServiciosController(AppDbContext context, INotificadorEventos notificador)
         {
             _context = context;
+            _notificador = notificador;
         }
 
         // GET: /Servicios
@@ -80,6 +83,9 @@ namespace GestionServiciosAutomotrices.API.Controllers
             _context.Servicios.Add(servicio);
             await _context.SaveChangesAsync();
 
+            await _notificador.CatalogoAsync("creado", "Servicio", servicio.Nombre,
+                $"Precio {servicio.Precio:C}", $"/Servicios/Details/{servicio.IdServicio}");
+
             TempData["Mensaje"] = $"Servicio \"{servicio.Nombre}\" agregado al catálogo.";
             return RedirectToAction(nameof(Details), new { id = servicio.IdServicio });
         }
@@ -133,6 +139,9 @@ namespace GestionServiciosAutomotrices.API.Controllers
 
             await _context.SaveChangesAsync();
 
+            await _notificador.CatalogoAsync("actualizado", "Servicio", servicio.Nombre,
+                $"Precio {servicio.Precio:C}", $"/Servicios/Details/{servicio.IdServicio}");
+
             TempData["Mensaje"] = "Servicio actualizado. Los tickets ya creados conservan su precio original.";
             return RedirectToAction(nameof(Details), new { id });
         }
@@ -178,6 +187,8 @@ namespace GestionServiciosAutomotrices.API.Controllers
 
             _context.Servicios.Remove(servicio);
             await _context.SaveChangesAsync();
+
+            await _notificador.CatalogoAsync("eliminado", "Servicio", servicio.Nombre);
 
             TempData["Mensaje"] = $"Servicio \"{servicio.Nombre}\" eliminado del catálogo.";
             return RedirectToAction(nameof(Index));

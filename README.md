@@ -55,7 +55,7 @@ Proyecto_ClientesServidor/
 │   ├── Hubs/
 │   │   └── NotificacionesHub.cs      # Hub de SignalR (tiempo real)
 │   ├── Services/
-│   │   ├── INotificadorTickets.cs    # Contrato de notificaciones
+│   │   ├── INotificadorEventos.cs    # Contrato de notificaciones
 │   │   └── NotificadorSignalR.cs     # Implementación con SignalR
 │   ├── wwwroot/js/
 │   │   └── notificaciones.js         # Cliente de SignalR en el navegador
@@ -106,22 +106,24 @@ Cada sección tiene sus cinco vistas: lista (Index), detalle (Details), alta (Cr
 
 ## Notificaciones en tiempo real (SignalR)
 
-Cuando alguien crea, actualiza, cambia de estado o elimina un ticket, **todos los navegadores que tengan la aplicación abierta reciben el aviso al instante**, sin recargar la página. Además, el contador de tickets pendientes del menú se actualiza solo.
+Cuando alguien da de alta, modifica o elimina **cualquier registro del sistema** —tickets, clientes, vehículos, mecánicos o servicios— **todos los navegadores que tengan la aplicación abierta reciben el aviso al instante**, sin recargar la página. Además, el contador de tickets pendientes del menú se actualiza solo.
 
 Funciona igual si el cambio se hace desde la interfaz web o desde la API (Postman/Swagger): en ambos casos el aviso llega a los navegadores conectados.
+
+Quien realiza la acción también ve un aviso de confirmación. Es necesario porque, al guardar, la aplicación redirige a otra página (patrón Post/Redirect/Get) y la conexión de SignalR se reinicia: el aviso en tiempo real no alcanzaría a mostrarse en esa ventana, así que se muestra al cargar la página siguiente.
 
 **Cómo está armado**
 
 | Pieza | Archivo | Qué hace |
 |---|---|---|
 | Hub | `Hubs/NotificacionesHub.cs` | Punto de conexión permanente en `/hubs/notificaciones` |
-| Contrato | `Services/INotificadorTickets.cs` | Interfaz de la que dependen los controladores |
+| Contrato | `Services/INotificadorEventos.cs` | Interfaz de la que dependen los controladores |
 | Emisor | `Services/NotificadorSignalR.cs` | Arma el mensaje y lo envía por SignalR |
 | Cliente | `wwwroot/js/notificaciones.js` | Recibe los avisos y los muestra como *toast* |
 
 Los controladores dependen de la **interfaz**, no de SignalR. Gracias a eso, agregar RabbitMQ en la siguiente fase solo requiere registrar otra implementación en `Program.cs`, sin tocar los controladores.
 
-**Para probarlo:** abre la aplicación en dos ventanas del navegador y crea o edita un ticket en una; el aviso aparecerá en la otra. El indicador «En vivo» del menú confirma que la conexión está activa (si se cae, SignalR reconecta solo).
+**Para probarlo:** abre la aplicación en dos ventanas del navegador y guarda cualquier registro en una; el aviso aparecerá en la otra al instante. El indicador «En vivo» del menú confirma que la conexión está activa (si se cae, SignalR reconecta solo).
 
 ## Endpoints de la API REST
 

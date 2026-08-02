@@ -45,9 +45,9 @@ builder.Services.AddSignalR();
 
 // Servicio que publica los avisos de los tickets.
 // TODO (Fase 4): Para enviar los avisos a través de RabbitMQ basta con
-// registrar aquí otra implementación de INotificadorTickets; los
+// registrar aquí otra implementación de INotificadorEventos; los
 // controladores no cambian porque dependen de la interfaz, no de SignalR.
-builder.Services.AddScoped<INotificadorTickets, NotificadorSignalR>();
+builder.Services.AddScoped<INotificadorEventos, NotificadorSignalR>();
 
 // Swagger para documentar y probar la API.
 builder.Services.AddEndpointsApiExplorer();

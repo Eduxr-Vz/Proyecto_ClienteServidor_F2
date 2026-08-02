@@ -1,6 +1,7 @@
 using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
+using GestionServiciosAutomotrices.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,12 @@ namespace GestionServiciosAutomotrices.API.Controllers
     public class VehiculosController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly INotificadorEventos _notificador;
 
-        public VehiculosController(AppDbContext context)
+        public VehiculosController(AppDbContext context, INotificadorEventos notificador)
         {
             _context = context;
+            _notificador = notificador;
         }
 
         // GET: /Vehiculos
@@ -97,6 +100,10 @@ namespace GestionServiciosAutomotrices.API.Controllers
             _context.Vehiculos.Add(vehiculo);
             await _context.SaveChangesAsync();
 
+            await _notificador.CatalogoAsync("creado", "Vehículo",
+                $"{vehiculo.Marca} {vehiculo.Modelo} ({vehiculo.Placas})",
+                $"Año {vehiculo.Anio}", $"/Vehiculos/Details/{vehiculo.IdVehiculo}");
+
             TempData["Mensaje"] = $"Vehículo {vehiculo.Marca} {vehiculo.Modelo} ({vehiculo.Placas}) registrado correctamente.";
             return RedirectToAction(nameof(Details), new { id = vehiculo.IdVehiculo });
         }
@@ -158,6 +165,10 @@ namespace GestionServiciosAutomotrices.API.Controllers
 
             await _context.SaveChangesAsync();
 
+            await _notificador.CatalogoAsync("actualizado", "Vehículo",
+                $"{vehiculo.Marca} {vehiculo.Modelo} ({vehiculo.Placas})",
+                $"Año {vehiculo.Anio}", $"/Vehiculos/Details/{vehiculo.IdVehiculo}");
+
             TempData["Mensaje"] = "Vehículo actualizado correctamente.";
             return RedirectToAction(nameof(Details), new { id });
         }
@@ -200,6 +211,9 @@ namespace GestionServiciosAutomotrices.API.Controllers
 
             _context.Vehiculos.Remove(vehiculo);
             await _context.SaveChangesAsync();
+
+            await _notificador.CatalogoAsync("eliminado", "Vehículo",
+                $"{vehiculo.Marca} {vehiculo.Modelo} ({vehiculo.Placas})");
 
             TempData["Mensaje"] = $"Vehículo {vehiculo.Placas} eliminado.";
             return RedirectToAction(nameof(Index));

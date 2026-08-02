@@ -16,9 +16,9 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
     public class TicketsApiController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly INotificadorTickets _notificador;
+        private readonly INotificadorEventos _notificador;
 
-        public TicketsApiController(AppDbContext context, INotificadorTickets notificador)
+        public TicketsApiController(AppDbContext context, INotificadorEventos notificador)
         {
             _context = context;
             _notificador = notificador;

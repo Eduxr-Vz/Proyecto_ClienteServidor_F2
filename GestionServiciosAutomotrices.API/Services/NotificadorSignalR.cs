@@ -14,7 +14,7 @@ namespace GestionServiciosAutomotrices.API.Services
     /// controlador, por ejemplo); no hace falta que el usuario esté haciendo
     /// nada para poder enviarle un mensaje.
     /// </summary>
-    public class NotificadorSignalR : INotificadorTickets
+    public class NotificadorSignalR : INotificadorEventos
     {
         private readonly IHubContext<NotificacionesHub> _hub;
         private readonly AppDbContext _context;
@@ -30,55 +30,76 @@ namespace GestionServiciosAutomotrices.API.Services
             _logger = logger;
         }
 
+        // ----------------------- Tickets -----------------------
+
         public Task TicketCreadoAsync(Ticket ticket) =>
             EnviarAsync(new NotificacionDto
             {
                 Tipo = "creado",
-                IdTicket = ticket.IdTicket,
-                Folio = ticket.Folio,
+                Entidad = "Ticket",
                 Titulo = $"Nuevo ticket {ticket.Folio}",
                 Mensaje = $"{DescribirVehiculo(ticket)} · {Recortar(ticket.DescripcionProblema, 70)}",
-                Estado = ticket.Estado.ToString()
+                Url = $"/Tickets/Details/{ticket.IdTicket}"
             });
 
         public Task TicketActualizadoAsync(Ticket ticket) =>
             EnviarAsync(new NotificacionDto
             {
                 Tipo = "actualizado",
-                IdTicket = ticket.IdTicket,
-                Folio = ticket.Folio,
+                Entidad = "Ticket",
                 Titulo = $"Ticket {ticket.Folio} actualizado",
                 Mensaje = $"{DescribirVehiculo(ticket)} · Total {ticket.Total:C}",
-                Estado = ticket.Estado.ToString()
+                Url = $"/Tickets/Details/{ticket.IdTicket}"
             });
 
         public Task EstadoCambiadoAsync(Ticket ticket, EstadoTicket estadoAnterior) =>
             EnviarAsync(new NotificacionDto
             {
                 Tipo = "estado",
-                IdTicket = ticket.IdTicket,
-                Folio = ticket.Folio,
+                Entidad = "Ticket",
                 Titulo = $"Ticket {ticket.Folio}: {estadoAnterior} → {ticket.Estado}",
                 Mensaje = DescribirVehiculo(ticket),
-                Estado = ticket.Estado.ToString()
+                Url = $"/Tickets/Details/{ticket.IdTicket}"
             });
 
         public Task TicketEliminadoAsync(Ticket ticket) =>
             EnviarAsync(new NotificacionDto
             {
                 Tipo = "eliminado",
-                IdTicket = ticket.IdTicket,
-                Folio = ticket.Folio,
+                Entidad = "Ticket",
                 Titulo = $"Se eliminó el ticket {ticket.Folio}",
-                Mensaje = DescribirVehiculo(ticket),
-                Estado = ticket.Estado.ToString()
+                Mensaje = DescribirVehiculo(ticket)
             });
+
+        // ----------------------- Catálogos -----------------------
+
+        public Task CatalogoAsync(string accion, string entidad, string nombre,
+                                  string? detalle = null, string? url = null)
+        {
+            var titulo = accion switch
+            {
+                "creado" => $"{entidad} nuevo: {nombre}",
+                "eliminado" => $"Se eliminó el {entidad.ToLowerInvariant()} {nombre}",
+                _ => $"{entidad} actualizado: {nombre}"
+            };
+
+            return EnviarAsync(new NotificacionDto
+            {
+                Tipo = accion,
+                Entidad = entidad,
+                Titulo = titulo,
+                Mensaje = detalle ?? string.Empty,
+                Url = url
+            });
+        }
+
+        // ----------------------- Envío -----------------------
 
         /// <summary>
         /// Manda el aviso a todos los navegadores conectados.
         /// Si algo falla se registra en el log pero NO se lanza la excepción:
         /// una notificación que no se pudo enviar no debe tumbar la operación
-        /// principal (el ticket ya se guardó correctamente).
+        /// principal (el registro ya se guardó correctamente).
         /// </summary>
         private async Task EnviarAsync(NotificacionDto notificacion)
         {
@@ -90,13 +111,12 @@ namespace GestionServiciosAutomotrices.API.Services
                     .Group(NotificacionesHub.GrupoTaller)
                     .SendAsync(NotificacionesHub.EventoNotificacion, notificacion);
 
-                _logger.LogInformation("Notificación enviada: {Tipo} {Folio}",
-                    notificacion.Tipo, notificacion.Folio);
+                _logger.LogInformation("Notificación enviada: {Entidad} {Tipo} — {Titulo}",
+                    notificacion.Entidad, notificacion.Tipo, notificacion.Titulo);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "No se pudo enviar la notificación del ticket {Folio}",
-                    notificacion.Folio);
+                _logger.LogError(ex, "No se pudo enviar la notificación: {Titulo}", notificacion.Titulo);
             }
         }
 

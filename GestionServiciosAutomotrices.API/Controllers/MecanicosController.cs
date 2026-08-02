@@ -1,6 +1,7 @@
 using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
+using GestionServiciosAutomotrices.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,10 +13,12 @@ namespace GestionServiciosAutomotrices.API.Controllers
     public class MecanicosController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly INotificadorEventos _notificador;
 
-        public MecanicosController(AppDbContext context)
+        public MecanicosController(AppDbContext context, INotificadorEventos notificador)
         {
             _context = context;
+            _notificador = notificador;
         }
 
         // GET: /Mecanicos
@@ -77,6 +80,10 @@ namespace GestionServiciosAutomotrices.API.Controllers
 
             _context.Mecanicos.Add(mecanico);
             await _context.SaveChangesAsync();
+
+            await _notificador.CatalogoAsync("creado", "Mecánico",
+                $"{mecanico.Nombre} {mecanico.Apellidos}",
+                mecanico.Especialidad, $"/Mecanicos/Details/{mecanico.IdMecanico}");
 
             TempData["Mensaje"] = $"Mecánico {mecanico.Nombre} {mecanico.Apellidos} registrado correctamente.";
             return RedirectToAction(nameof(Details), new { id = mecanico.IdMecanico });
@@ -144,6 +151,11 @@ namespace GestionServiciosAutomotrices.API.Controllers
 
             await _context.SaveChangesAsync();
 
+            await _notificador.CatalogoAsync("actualizado", "Mecánico",
+                $"{mecanico.Nombre} {mecanico.Apellidos}",
+                mecanico.Activo ? mecanico.Especialidad : "Dado de baja",
+                $"/Mecanicos/Details/{mecanico.IdMecanico}");
+
             TempData["Mensaje"] = "Mecánico actualizado correctamente.";
             return RedirectToAction(nameof(Details), new { id });
         }
@@ -198,6 +210,9 @@ namespace GestionServiciosAutomotrices.API.Controllers
 
             _context.Mecanicos.Remove(mecanico);
             await _context.SaveChangesAsync();
+
+            await _notificador.CatalogoAsync("eliminado", "Mecánico",
+                $"{mecanico.Nombre} {mecanico.Apellidos}");
 
             TempData["Mensaje"] = $"Mecánico {mecanico.Nombre} {mecanico.Apellidos} eliminado.";
             return RedirectToAction(nameof(Index));

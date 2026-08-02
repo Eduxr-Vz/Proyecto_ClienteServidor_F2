@@ -1,6 +1,7 @@
 using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
+using GestionServiciosAutomotrices.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,10 +14,12 @@ namespace GestionServiciosAutomotrices.API.Controllers
     public class ClientesController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly INotificadorEventos _notificador;
 
-        public ClientesController(AppDbContext context)
+        public ClientesController(AppDbContext context, INotificadorEventos notificador)
         {
             _context = context;
+            _notificador = notificador;
         }
 
         // GET: /Clientes
@@ -82,6 +85,10 @@ namespace GestionServiciosAutomotrices.API.Controllers
             _context.Clientes.Add(cliente);
             await _context.SaveChangesAsync();
 
+            await _notificador.CatalogoAsync("creado", "Cliente",
+                $"{cliente.Nombre} {cliente.Apellidos}",
+                cliente.Telefono, $"/Clientes/Details/{cliente.IdCliente}");
+
             TempData["Mensaje"] = $"Cliente {cliente.Nombre} {cliente.Apellidos} registrado correctamente.";
             return RedirectToAction(nameof(Details), new { id = cliente.IdCliente });
         }
@@ -133,6 +140,10 @@ namespace GestionServiciosAutomotrices.API.Controllers
 
             await _context.SaveChangesAsync();
 
+            await _notificador.CatalogoAsync("actualizado", "Cliente",
+                $"{cliente.Nombre} {cliente.Apellidos}",
+                cliente.Telefono, $"/Clientes/Details/{cliente.IdCliente}");
+
             TempData["Mensaje"] = "Cliente actualizado correctamente.";
             return RedirectToAction(nameof(Details), new { id });
         }
@@ -175,6 +186,9 @@ namespace GestionServiciosAutomotrices.API.Controllers
 
             _context.Clientes.Remove(cliente);
             await _context.SaveChangesAsync();
+
+            await _notificador.CatalogoAsync("eliminado", "Cliente",
+                $"{cliente.Nombre} {cliente.Apellidos}");
 
             TempData["Mensaje"] = $"Cliente {cliente.Nombre} {cliente.Apellidos} eliminado.";
             return RedirectToAction(nameof(Index));
