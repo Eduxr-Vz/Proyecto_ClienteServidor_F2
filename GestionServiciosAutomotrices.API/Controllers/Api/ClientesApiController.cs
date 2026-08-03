@@ -1,6 +1,7 @@
 using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
+using GestionServiciosAutomotrices.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,10 +15,12 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
     public class ClientesApiController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly INotificadorEventos _notificador;
 
-        public ClientesApiController(AppDbContext context)
+        public ClientesApiController(AppDbContext context, INotificadorEventos notificador)
         {
             _context = context;
+            _notificador = notificador;
         }
 
         // GET: api/clientes
@@ -65,6 +68,9 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             _context.Clientes.Add(cliente);
             await _context.SaveChangesAsync();
 
+            await _notificador.CatalogoAsync("creado", "Cliente",
+                $"{cliente.Nombre} {cliente.Apellidos}", cliente.Telefono, $"/Clientes/Details/{cliente.IdCliente}");
+
             return CreatedAtAction(nameof(GetCliente), new { id = cliente.IdCliente }, MapearADto(cliente));
         }
 
@@ -88,6 +94,9 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             cliente.Direccion = dto.Direccion;
 
             await _context.SaveChangesAsync();
+
+            await _notificador.CatalogoAsync("actualizado", "Cliente",
+                $"{cliente.Nombre} {cliente.Apellidos}", cliente.Telefono, $"/Clientes/Details/{cliente.IdCliente}");
 
             return Ok(MapearADto(cliente));
         }
@@ -117,6 +126,8 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
             _context.Clientes.Remove(cliente);
             await _context.SaveChangesAsync();
+
+            await _notificador.CatalogoAsync("eliminado", "Cliente", $"{cliente.Nombre} {cliente.Apellidos}");
 
             return NoContent();
         }

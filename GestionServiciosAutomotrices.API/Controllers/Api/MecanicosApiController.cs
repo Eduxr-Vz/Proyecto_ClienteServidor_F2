@@ -1,6 +1,7 @@
 using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
+using GestionServiciosAutomotrices.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,10 +15,12 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
     public class MecanicosApiController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly INotificadorEventos _notificador;
 
-        public MecanicosApiController(AppDbContext context)
+        public MecanicosApiController(AppDbContext context, INotificadorEventos notificador)
         {
             _context = context;
+            _notificador = notificador;
         }
 
         // GET: api/mecanicos
@@ -71,6 +74,9 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             _context.Mecanicos.Add(mecanico);
             await _context.SaveChangesAsync();
 
+            await _notificador.CatalogoAsync("creado", "Mecánico",
+                $"{mecanico.Nombre} {mecanico.Apellidos}", mecanico.Especialidad, $"/Mecanicos/Details/{mecanico.IdMecanico}");
+
             return CreatedAtAction(nameof(GetMecanico), new { id = mecanico.IdMecanico }, MapearADto(mecanico));
         }
 
@@ -110,6 +116,9 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             mecanico.Activo = dto.Activo;
 
             await _context.SaveChangesAsync();
+
+            await _notificador.CatalogoAsync("actualizado", "Mecánico",
+                $"{mecanico.Nombre} {mecanico.Apellidos}", mecanico.Especialidad, $"/Mecanicos/Details/{mecanico.IdMecanico}");
 
             return Ok(MapearADto(mecanico));
         }
@@ -154,6 +163,8 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
             _context.Mecanicos.Remove(mecanico);
             await _context.SaveChangesAsync();
+
+            await _notificador.CatalogoAsync("eliminado", "Mecánico", $"{mecanico.Nombre} {mecanico.Apellidos}");
 
             return NoContent();
         }

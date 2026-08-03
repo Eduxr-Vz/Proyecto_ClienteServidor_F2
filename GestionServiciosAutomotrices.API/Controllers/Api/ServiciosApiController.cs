@@ -1,6 +1,7 @@
 using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
+using GestionServiciosAutomotrices.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,10 +15,12 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
     public class ServiciosApiController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly INotificadorEventos _notificador;
 
-        public ServiciosApiController(AppDbContext context)
+        public ServiciosApiController(AppDbContext context, INotificadorEventos notificador)
         {
             _context = context;
+            _notificador = notificador;
         }
 
         // GET: api/servicios
@@ -77,6 +80,9 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             _context.Servicios.Add(servicio);
             await _context.SaveChangesAsync();
 
+            await _notificador.CatalogoAsync("creado", "Servicio",
+                servicio.Nombre, $"Precio {servicio.Precio:C}", $"/Servicios/Details/{servicio.IdServicio}");
+
             return CreatedAtAction(nameof(GetServicio), new { id = servicio.IdServicio }, MapearADto(servicio));
         }
 
@@ -111,6 +117,9 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
             await _context.SaveChangesAsync();
 
+            await _notificador.CatalogoAsync("actualizado", "Servicio",
+                servicio.Nombre, $"Precio {servicio.Precio:C}", $"/Servicios/Details/{servicio.IdServicio}");
+
             return Ok(MapearADto(servicio));
         }
 
@@ -143,6 +152,8 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
             _context.Servicios.Remove(servicio);
             await _context.SaveChangesAsync();
+
+            await _notificador.CatalogoAsync("eliminado", "Servicio", servicio.Nombre);
 
             return NoContent();
         }

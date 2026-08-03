@@ -1,6 +1,7 @@
 using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
+using GestionServiciosAutomotrices.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,10 +15,12 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
     public class VehiculosApiController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly INotificadorEventos _notificador;
 
-        public VehiculosApiController(AppDbContext context)
+        public VehiculosApiController(AppDbContext context, INotificadorEventos notificador)
         {
             _context = context;
+            _notificador = notificador;
         }
 
         // GET: api/vehiculos
@@ -80,6 +83,9 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
             await _context.Entry(vehiculo).Reference(v => v.Cliente).LoadAsync();
 
+            await _notificador.CatalogoAsync("creado", "Vehículo",
+                $"{vehiculo.Marca} {vehiculo.Modelo} ({vehiculo.Placas})", $"Año {vehiculo.Anio}", $"/Vehiculos/Details/{vehiculo.IdVehiculo}");
+
             return CreatedAtAction(nameof(GetVehiculo), new { id = vehiculo.IdVehiculo }, MapearADto(vehiculo));
         }
 
@@ -111,6 +117,9 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             await _context.SaveChangesAsync();
             await _context.Entry(vehiculo).Reference(v => v.Cliente).LoadAsync();
 
+            await _notificador.CatalogoAsync("actualizado", "Vehículo",
+                $"{vehiculo.Marca} {vehiculo.Modelo} ({vehiculo.Placas})", $"Año {vehiculo.Anio}", $"/Vehiculos/Details/{vehiculo.IdVehiculo}");
+
             return Ok(MapearADto(vehiculo));
         }
 
@@ -138,6 +147,8 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
             _context.Vehiculos.Remove(vehiculo);
             await _context.SaveChangesAsync();
+
+            await _notificador.CatalogoAsync("eliminado", "Vehículo", $"{vehiculo.Marca} {vehiculo.Modelo} ({vehiculo.Placas})");
 
             return NoContent();
         }
