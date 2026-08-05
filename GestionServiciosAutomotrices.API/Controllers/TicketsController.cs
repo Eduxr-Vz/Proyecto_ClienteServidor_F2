@@ -83,6 +83,63 @@ namespace GestionServiciosAutomotrices.API.Controllers
             return View(ticket);
         }
 
+        // GET: /Tickets/Pdf/5
+        // Descarga la orden de servicio del ticket en PDF.
+        public async Task<IActionResult> Pdf(int id)
+        {
+            var ticket = await _context.Tickets
+                .Include(t => t.Vehiculo)
+                    .ThenInclude(v => v!.Cliente)
+                .Include(t => t.Mecanico)
+                .Include(t => t.TicketServicios)
+                    .ThenInclude(ts => ts.Servicio)
+                .FirstOrDefaultAsync(t => t.IdTicket == id);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            var pdf = TicketPdf.Generar(ticket);
+            return File(pdf, "application/pdf", TicketPdf.NombreArchivo(ticket));
+        }
+
+        // GET: /Tickets/PdfListado?estado=Abierto&idMecanico=2
+        // Descarga en PDF el listado de tickets con los filtros aplicados.
+        public async Task<IActionResult> PdfListado(EstadoTicket? estado, int? idMecanico)
+        {
+            var consulta = _context.Tickets
+                .Include(t => t.Vehiculo)
+                    .ThenInclude(v => v!.Cliente)
+                .Include(t => t.Mecanico)
+                .AsQueryable();
+
+            if (estado.HasValue)
+            {
+                consulta = consulta.Where(t => t.Estado == estado.Value);
+            }
+
+            if (idMecanico.HasValue)
+            {
+                consulta = consulta.Where(t => t.IdMecanico == idMecanico.Value);
+            }
+
+            var tickets = await consulta.OrderByDescending(t => t.FechaCreacion).ToListAsync();
+
+            // Texto que describe los filtros usados, para que salga en el reporte.
+            var partes = new List<string>();
+            if (estado.HasValue) partes.Add($"estado {estado}");
+            if (idMecanico.HasValue)
+            {
+                var mecanico = await _context.Mecanicos.FindAsync(idMecanico.Value);
+                if (mecanico != null) partes.Add($"mecánico {mecanico.Nombre} {mecanico.Apellidos}");
+            }
+            var subtitulo = partes.Count > 0 ? string.Join(", ", partes) : "todos los tickets";
+
+            var pdf = TicketPdf.GenerarListado(tickets, subtitulo);
+            return File(pdf, "application/pdf", $"Tickets_{DateTime.Now:yyyyMMdd}.pdf");
+        }
+
         // GET: /Tickets/Create
         public async Task<IActionResult> Create()
         {

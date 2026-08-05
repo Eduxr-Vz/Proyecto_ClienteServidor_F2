@@ -9,6 +9,7 @@ Sistema para administrar un taller mecánico: clientes, sus vehículos, los mec�
 
 - ASP.NET Core (.NET 10): MVC con vistas Razor + Web API en el mismo proyecto
 - SignalR (notificaciones en tiempo real por WebSockets)
+- QuestPDF (generación de las órdenes de servicio en PDF)
 - Entity Framework Core 10 (SQL Server)
 - SQL Server LocalDB (o SQL Server Express)
 - Bootstrap 5 (interfaz web)
@@ -56,7 +57,8 @@ Proyecto_ClientesServidor/
 │   │   └── NotificacionesHub.cs      # Hub de SignalR (tiempo real)
 │   ├── Services/
 │   │   ├── INotificadorEventos.cs    # Contrato de notificaciones
-│   │   └── NotificadorSignalR.cs     # Implementación con SignalR
+│   │   ├── NotificadorSignalR.cs     # Implementación con SignalR
+│   │   └── TicketPdf.cs              # Genera las órdenes de servicio en PDF
 │   ├── wwwroot/js/
 │   │   └── notificaciones.js         # Cliente de SignalR en el navegador
 │   ├── Program.cs
@@ -125,6 +127,19 @@ Los controladores dependen de la **interfaz**, no de SignalR. Gracias a eso, agr
 
 **Para probarlo:** abre la aplicación en dos ventanas del navegador y guarda cualquier registro en una; el aviso aparecerá en la otra al instante. El indicador «En vivo» del menú confirma que la conexión está activa (si se cae, SignalR reconecta solo).
 
+## Exportación a PDF
+
+Los tickets se pueden descargar en PDF con el formato de una **orden de servicio** lista para imprimir y entregar al cliente: encabezado con el folio y el estado, datos del cliente y del vehículo, fechas, mecánico asignado, problema reportado, tabla de servicios con el importe de cada uno, total y espacios de firma.
+
+| Dónde | Ruta | Qué descarga |
+|---|---|---|
+| Detalle del ticket | botón **Descargar PDF** | La orden de servicio (`OrdenServicio_TKT-2026-0001.pdf`) |
+| Lista de tickets | botón **PDF** de cada fila | La orden de ese ticket |
+| Lista de tickets | botón **Exportar a PDF** | Reporte con todos los tickets **respetando los filtros aplicados** |
+| API | `GET /api/tickets/{id}/pdf` | La orden de servicio, para consumirla desde otro programa |
+
+El documento se arma con **QuestPDF**, describiendo la estructura en código C# (`Services/TicketPdf.cs`); la librería se encarga de paginar y dibujar.
+
 ## Endpoints de la API REST
 
 **Tickets** — `api/tickets`
@@ -133,6 +148,7 @@ Los controladores dependen de la **interfaz**, no de SignalR. Gracias a eso, agr
 |--------|---------------------------|----------------------------------------------------------|---------------|
 | GET    | /api/tickets              | Lista con filtros `?estado=&idMecanico=` y paginación `?pagina=&porPagina=` | 200 |
 | GET    | /api/tickets/{id}         | Consulta un ticket                                       | 200, 404      |
+| GET    | /api/tickets/{id}/pdf     | Descarga la orden de servicio en PDF                     | 200, 404      |
 | POST   | /api/tickets              | Crea con folio consecutivo, servicios y total calculado  | 201, 400      |
 | PUT    | /api/tickets/{id}         | Actualiza datos y **los servicios del ticket**           | 200, 400, 404 |
 | PATCH  | /api/tickets/{id}/estado  | Cambia únicamente el estado                              | 200, 400, 404 |

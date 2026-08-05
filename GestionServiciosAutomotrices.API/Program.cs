@@ -11,6 +11,10 @@ var culturaMexico = new CultureInfo("es-MX");
 CultureInfo.DefaultThreadCurrentCulture = culturaMexico;
 CultureInfo.DefaultThreadCurrentUICulture = culturaMexico;
 
+// QuestPDF (generación de las órdenes de servicio en PDF) exige declarar la
+// licencia. La Community es gratuita para proyectos como este.
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ----- Servicios -----

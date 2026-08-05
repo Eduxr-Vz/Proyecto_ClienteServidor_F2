@@ -85,6 +85,32 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
             return Ok(MapearADto(ticket));
         }
 
+        // GET: api/tickets/5/pdf
+        // Devuelve la orden de servicio en PDF en lugar de JSON.
+        // No se usa [Produces("application/pdf")] porque entonces la respuesta
+        // 404 (que es JSON) fallaría la negociación de contenido y devolvería 406.
+        [HttpGet("{id:int}/pdf")]
+        [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK, "application/pdf")]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetTicketPdf(int id)
+        {
+            var ticket = await _context.Tickets
+                .Include(t => t.Vehiculo)
+                    .ThenInclude(v => v!.Cliente)
+                .Include(t => t.Mecanico)
+                .Include(t => t.TicketServicios)
+                    .ThenInclude(ts => ts.Servicio)
+                .FirstOrDefaultAsync(t => t.IdTicket == id);
+
+            if (ticket == null)
+            {
+                return NotFound(new { mensaje = $"No existe un ticket con id {id}." });
+            }
+
+            var pdf = TicketPdf.Generar(ticket);
+            return File(pdf, "application/pdf", TicketPdf.NombreArchivo(ticket));
+        }
+
         // POST: api/tickets
         [HttpPost]
         public async Task<ActionResult<TicketDto>> CrearTicket(TicketCrearDto dto)

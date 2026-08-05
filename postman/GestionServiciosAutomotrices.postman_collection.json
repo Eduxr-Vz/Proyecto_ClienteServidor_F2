@@ -61,6 +61,19 @@
           }
         },
         {
+          "name": "1.3b GET orden de servicio en PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/1/pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tickets", "1", "pdf"]
+            },
+            "description": "Devuelve la orden de servicio del ticket como archivo PDF en lugar de JSON. Respuesta esperada: 200 OK con Content-Type application/pdf; Postman muestra una vista previa del documento. Si el ticket no existe devuelve 404."
+          }
+        },
+        {
           "name": "1.4 GET id inexistente (error)",
           "request": {
             "method": "GET",

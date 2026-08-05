@@ -6,6 +6,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0">Ticket @Model.Folio <partial name="_EstadoBadge" model="Model.Estado" /></h1>
     <div>
+        <a asp-action="Pdf" asp-route-id="@Model.IdTicket" class="btn btn-danger">Descargar PDF</a>
         <a asp-action="Edit" asp-route-id="@Model.IdTicket" class="btn btn-outline-secondary">Editar</a>
         <a asp-action="Index" class="btn btn-outline-dark">Volver a la lista</a>
     </div>
