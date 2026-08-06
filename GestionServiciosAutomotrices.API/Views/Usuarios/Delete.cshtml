@@ -1,0 +1,45 @@
+@model GestionServiciosAutomotrices.API.Models.Usuario
+@{
+    ViewData["Title"] = "Eliminar cuenta";
+    var esMiCuenta = (bool)ViewBag.EsMiCuenta;
+}
+
+<h1 class="h3 mb-3 text-danger">Eliminar cuenta de usuario</h1>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Usuario</dt>
+                    <dd class="col-sm-8">@Model.NombreUsuario</dd>
+
+                    <dt class="col-sm-4">Nombre</dt>
+                    <dd class="col-sm-8">@Model.NombreCompleto</dd>
+
+                    <dt class="col-sm-4">Rol</dt>
+                    <dd class="col-sm-8"><partial name="_RolBadge" model="Model.Rol" /></dd>
+
+                    <dt class="col-sm-4">Último acceso</dt>
+                    <dd class="col-sm-8">@(Model.UltimoAcceso?.ToString("dd/MM/yyyy HH:mm") ?? "Nunca")</dd>
+                </dl>
+
+                @if (esMiCuenta)
+                {
+                    <div class="alert alert-warning mb-3">
+                        No puedes eliminar tu propia cuenta: te quedarías fuera del sistema.
+                    </div>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+                }
+                else
+                {
+                    <p>¿Seguro que quieres eliminar esta cuenta? La persona ya no podrá iniciar sesión.</p>
+                    <form asp-action="Delete" asp-route-id="@Model.IdUsuario" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                    </form>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

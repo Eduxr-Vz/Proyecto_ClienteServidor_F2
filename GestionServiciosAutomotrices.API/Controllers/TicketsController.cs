@@ -2,6 +2,7 @@ using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
 using GestionServiciosAutomotrices.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -141,6 +142,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         }
 
         // GET: /Tickets/Create
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<IActionResult> Create()
         {
             await CargarListasAsync();
@@ -150,6 +152,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         // POST: /Tickets/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<IActionResult> Create(TicketCrearDto dto)
         {
             var vehiculo = await _context.Vehiculos
@@ -354,6 +357,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         }
 
         // GET: /Tickets/Delete/5
+        [Authorize(Roles = RolUsuario.Administrador)]
         public async Task<IActionResult> Delete(int id)
         {
             var ticket = await _context.Tickets
@@ -373,6 +377,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         // POST: /Tickets/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = RolUsuario.Administrador)]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var ticket = await _context.Tickets

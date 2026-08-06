@@ -94,6 +94,24 @@ CREATE TABLE Tickets (
 );
 GO
 
+/* ----------------------- Usuarios ----------------------- */
+/* Cuentas que pueden iniciar sesión en el sistema.           */
+/* La contraseña se guarda como hash (PBKDF2), nunca en claro.*/
+CREATE TABLE Usuarios (
+    IdUsuario       INT IDENTITY(1,1) PRIMARY KEY,
+    NombreUsuario   NVARCHAR(50)  NOT NULL,
+    NombreCompleto  NVARCHAR(100) NOT NULL,
+    ContrasenaHash  NVARCHAR(500) NOT NULL,
+    Rol             NVARCHAR(30)  NOT NULL DEFAULT N'Recepcionista',
+    Activo          BIT           NOT NULL DEFAULT 1,
+    FechaRegistro   DATETIME2     NOT NULL DEFAULT GETDATE(),
+    UltimoAcceso    DATETIME2     NULL,
+
+    CONSTRAINT UQ_Usuarios_NombreUsuario UNIQUE (NombreUsuario),
+    CONSTRAINT CK_Usuarios_Rol CHECK (Rol IN (N'Administrador', N'Recepcionista', N'Mecanico'))
+);
+GO
+
 /* ------------------- TicketServicios -------------------- */
 /* Relación muchos a muchos entre Tickets y Servicios.       */
 CREATE TABLE TicketServicios (
@@ -142,6 +160,11 @@ INSERT INTO Servicios (Nombre, Descripcion, Precio, TiempoEstimadoMin) VALUES
 (N'Alineación y balanceo', NULL,                                                   600.00, 60),
 (N'Diagnóstico general',   N'Escaneo por computadora y revisión de 20 puntos',     400.00, 60);
 GO
+
+/* El usuario administrador inicial lo crea la propia aplicación al arrancar
+   (ver Services/ServicioUsuarios.AsegurarAdministradorAsync), porque el hash
+   de la contraseña debe calcularlo el mismo algoritmo que luego la verifica.
+   Credenciales iniciales:  usuario "admin"  contraseña "Admin123!"          */
 
 /* Un ticket de ejemplo ya registrado */
 INSERT INTO Tickets (Folio, IdVehiculo, IdMecanico, DescripcionProblema, Estado, FechaEstimadaEntrega) VALUES

@@ -1,0 +1,24 @@
+@model GestionServiciosAutomotrices.API.DTOs.UsuarioGuardarDto
+@{
+    ViewData["Title"] = "Editar cuenta";
+}
+
+<h1 class="h3 mb-3">Editar cuenta de @ViewBag.NombreUsuarioActual</h1>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-action="Edit" asp-route-id="@ViewBag.IdUsuario" method="post">
+                    <partial name="_Formulario" model="Model" />
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScripts" />
+}

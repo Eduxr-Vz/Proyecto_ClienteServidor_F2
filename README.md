@@ -3,7 +3,17 @@
 Proyecto de la materia **Clientes-Servidor**.
 Sistema para administrar un taller mecánico: clientes, sus vehículos, los mecánicos, el catálogo de servicios y los tickets (órdenes de servicio).
 
-> **Estado: Fase 3.** CRUD completo de las cinco entidades, disponible de dos formas **en un solo proyecto**: una **interfaz web MVC** (vistas Razor con Bootstrap) y una **API REST** (JSON). Ambas comparten los modelos, el DbContext y las reglas de negocio. Incluye **notificaciones en tiempo real con SignalR**.
+> **Estado: Fase 3.** CRUD completo de las cinco entidades, disponible de dos formas **en un solo proyecto**: una **interfaz web MVC** (vistas Razor con Bootstrap) y una **API REST** (JSON). Ambas comparten los modelos, el DbContext y las reglas de negocio. Incluye **inicio de sesión con roles**, **notificaciones en tiempo real con SignalR** y **exportación de tickets a PDF**.
+
+## Acceso al sistema
+
+El sistema pide iniciar sesión. La primera vez que arranca crea la cuenta de administrador:
+
+| Usuario | Contraseña |
+|---|---|
+| `admin` | `Admin123!` |
+
+Desde **Usuarios** (visible solo para el administrador) se crean las demás cuentas.
 
 ## Tecnologías
 
@@ -23,6 +33,8 @@ Proyecto_ClientesServidor/
 ├── GestionServiciosAutomotrices.sln
 ├── GestionServiciosAutomotrices.API/
 │   ├── Controllers/                  # Controladores MVC (vistas web)
+│   │   ├── CuentaController.cs       # Inicio y cierre de sesión
+│   │   ├── UsuariosController.cs     # Gestión de cuentas (solo administrador)
 │   │   ├── TicketsController.cs
 │   │   ├── ClientesController.cs
 │   │   ├── VehiculosController.cs
@@ -58,6 +70,7 @@ Proyecto_ClientesServidor/
 │   ├── Services/
 │   │   ├── INotificadorEventos.cs    # Contrato de notificaciones
 │   │   ├── NotificadorSignalR.cs     # Implementación con SignalR
+│   │   ├── ServicioUsuarios.cs       # Hash de contraseñas y credenciales
 │   │   └── TicketPdf.cs              # Genera las órdenes de servicio en PDF
 │   ├── wwwroot/js/
 │   │   └── notificaciones.js         # Cliente de SignalR en el navegador
@@ -105,6 +118,26 @@ Proyecto_ClientesServidor/
 | Servicios    | `/Servicios` (catálogo) con filtro de activos               |
 
 Cada sección tiene sus cinco vistas: lista (Index), detalle (Details), alta (Create), edición (Edit) y confirmación de baja (Delete). Los formularios validan con DataAnnotations —las mismas reglas que usa la API— y muestran los errores junto a cada campo.
+
+## Autenticación y roles
+
+El acceso se controla con **autenticación por cookie**: al iniciar sesión el servidor envía una cookie firmada con la identidad del usuario, y el navegador la reenvía en cada petición. Las contraseñas **nunca se guardan en claro**: se almacena su hash calculado con PBKDF2 (`PasswordHasher`), con una sal distinta por usuario.
+
+| Rol | Puede |
+|---|---|
+| **Administrador** | Todo, incluida la gestión de usuarios y las eliminaciones |
+| **Recepcionista** | Dar de alta y editar tickets y catálogos; no elimina ni gestiona usuarios |
+| **Mecanico** | Consultar todo y actualizar el avance de los tickets |
+
+La interfaz **oculta los botones** que el rol no puede usar, y el servidor vuelve a comprobar el permiso en cada acción con `[Authorize(Roles = ...)]` — el control real está en el servidor, no en la pantalla.
+
+**En la API** rige lo mismo: sin sesión toda petición devuelve `401`, y si el rol no alcanza devuelve `403`. Para autenticarse desde Postman basta con `POST /api/cuenta/login`; Postman guarda la cookie y las peticiones siguientes ya van firmadas.
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/api/cuenta/login` | Inicia sesión y devuelve los datos del usuario |
+| POST | `/api/cuenta/logout` | Cierra la sesión |
+| GET | `/api/cuenta/yo` | Devuelve el usuario y rol de la sesión actual |
 
 ## Notificaciones en tiempo real (SignalR)
 
@@ -189,7 +222,7 @@ La variable `baseUrl` apunta a `https://localhost:7122`. Si Postman marca un err
 ## Pendientes para siguientes fases
 
 - [ ] RabbitMQ como intermediario de las notificaciones (patrón productor/consumidor).
-- [ ] Autenticación con JWT y roles (admin / recepcionista / mecánico).
+- [ ] Autenticación con JWT, para clientes que no manejen cookies (apps móviles).
 - [ ] CORS para consumir la API desde un cliente externo.
 - [ ] Migraciones de EF Core en lugar del script SQL manual.
 - [ ] Reportes: ingresos por periodo y productividad por mecánico.

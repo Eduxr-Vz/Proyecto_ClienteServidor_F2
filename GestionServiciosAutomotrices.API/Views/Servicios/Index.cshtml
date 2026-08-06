@@ -6,7 +6,10 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0">Catálogo de servicios</h1>
-    <a asp-action="Create" class="btn btn-primary">+ Nuevo servicio</a>
+    @if ((User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Administrador) || User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Recepcionista)))
+    {
+        <a asp-action="Create" class="btn btn-primary">+ Nuevo servicio</a>
+    }
 </div>
 
 <div class="btn-group mb-3">
@@ -62,8 +65,14 @@
                             }
                         </td>
                         <td class="text-end">
-                            <a asp-action="Edit" asp-route-id="@s.IdServicio" class="btn btn-sm btn-outline-secondary">Editar</a>
-                            <a asp-action="Delete" asp-route-id="@s.IdServicio" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                            @if ((User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Administrador) || User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Recepcionista)))
+                            {
+                                <a asp-action="Edit" asp-route-id="@s.IdServicio" class="btn btn-sm btn-outline-secondary">Editar</a>
+                            }
+                            @if (User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Administrador))
+                            {
+                                <a asp-action="Delete" asp-route-id="@s.IdServicio" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                            }
                         </td>
                     </tr>
                 }

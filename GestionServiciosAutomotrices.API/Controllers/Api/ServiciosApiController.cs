@@ -2,6 +2,7 @@ using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
 using GestionServiciosAutomotrices.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -60,6 +61,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // POST: api/servicios
         [HttpPost]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<ActionResult<ServicioDto>> CrearServicio(ServicioGuardarDto dto)
         {
             var nombreRepetido = await _context.Servicios.AnyAsync(s => s.Nombre == dto.Nombre);
@@ -88,6 +90,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // PUT: api/servicios/5
         [HttpPut("{id:int}")]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<ActionResult<ServicioDto>> ActualizarServicio(int id, ServicioGuardarDto dto)
         {
             var servicio = await _context.Servicios
@@ -125,6 +128,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // DELETE: api/servicios/5
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = RolUsuario.Administrador)]
         public async Task<IActionResult> EliminarServicio(int id)
         {
             var servicio = await _context.Servicios

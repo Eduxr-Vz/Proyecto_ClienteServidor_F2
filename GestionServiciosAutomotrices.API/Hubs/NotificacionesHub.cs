@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace GestionServiciosAutomotrices.API.Hubs
@@ -14,6 +15,7 @@ namespace GestionServiciosAutomotrices.API.Hubs
     /// Los clientes se conectan a la ruta /hubs/notificaciones (ver Program.cs)
     /// y escuchan el evento "RecibirNotificacion".
     /// </summary>
+    [Authorize]
     public class NotificacionesHub : Hub
     {
         // Nombre del método que escuchan los navegadores. Se define como

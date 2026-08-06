@@ -2,6 +2,7 @@ using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
 using GestionServiciosAutomotrices.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -113,6 +114,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // POST: api/tickets
         [HttpPost]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<ActionResult<TicketDto>> CrearTicket(TicketCrearDto dto)
         {
             // Las validaciones de los DataAnnotations del DTO las aplica [ApiController]
@@ -209,6 +211,8 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // PUT: api/tickets/5
         [HttpPut("{id:int}")]
+        // Sin restricción de rol: el mecánico también actualiza el avance de
+        // sus tickets, igual que en la pantalla de edición de la web.
         public async Task<ActionResult<TicketDto>> ActualizarTicket(int id, TicketActualizarDto dto)
         {
             var ticket = await _context.Tickets
@@ -297,6 +301,8 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
         // Permite cambiar solo el estado sin mandar todo el ticket.
         // El cuerpo es el nuevo estado como texto JSON, ej: "Terminado"
         [HttpPatch("{id:int}/estado")]
+        // Sin restricción de rol: cambiar el estado es justo lo que hace el
+        // mecánico cuando termina un trabajo.
         public async Task<ActionResult<TicketDto>> CambiarEstado(int id, [FromBody] EstadoTicket nuevoEstado)
         {
             var ticket = await BuscarTicketConRelaciones(id);
@@ -323,6 +329,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // DELETE: api/tickets/5
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = RolUsuario.Administrador)]
         public async Task<IActionResult> EliminarTicket(int id)
         {
             var ticket = await _context.Tickets

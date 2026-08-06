@@ -21,9 +21,37 @@
                 <a class="nav-link" asp-controller="Vehiculos" asp-action="Index">Vehículos</a>
                 <a class="nav-link" asp-controller="Mecanicos" asp-action="Index">Mecánicos</a>
                 <a class="nav-link" asp-controller="Servicios" asp-action="Index">Servicios</a>
+                @if (User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Administrador))
+                {
+                    <a class="nav-link" asp-controller="Usuarios" asp-action="Index">Usuarios</a>
+                }
                 <a class="nav-link" href="/swagger" target="_blank">API (Swagger)</a>
             </div>
-            <span id="estado-conexion" class="badge text-bg-secondary" title="Conectando...">Conectando</span>
+
+            <div class="d-flex align-items-center gap-2">
+                <span id="estado-conexion" class="badge text-bg-secondary" title="Conectando...">Conectando</span>
+
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        @(User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ?? User.Identity?.Name)
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li class="dropdown-header">
+                            @User.Identity?.Name
+                            <span class="badge bg-secondary ms-1">
+                                @User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                            </span>
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <form asp-controller="Cuenta" asp-action="Logout" method="post" class="px-3 py-1">
+                                <button type="submit" class="btn btn-sm btn-outline-danger w-100">Cerrar sesión</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </nav>
 

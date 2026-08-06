@@ -16,7 +16,10 @@
         }
     </h1>
     <div>
-        <a asp-action="Edit" asp-route-id="@Model.IdServicio" class="btn btn-outline-secondary">Editar</a>
+        @if ((User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Administrador) || User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Recepcionista)))
+        {
+            <a asp-action="Edit" asp-route-id="@Model.IdServicio" class="btn btn-outline-secondary">Editar</a>
+        }
         <a asp-action="Index" class="btn btn-outline-dark">Volver al catálogo</a>
     </div>
 </div>

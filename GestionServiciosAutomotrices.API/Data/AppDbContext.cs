@@ -15,6 +15,7 @@ namespace GestionServiciosAutomotrices.API.Data
         public DbSet<Servicio> Servicios { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<TicketServicio> TicketServicios { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +45,11 @@ namespace GestionServiciosAutomotrices.API.Data
             // El folio del ticket tampoco se puede repetir.
             modelBuilder.Entity<Ticket>()
                 .HasIndex(t => t.Folio)
+                .IsUnique();
+
+            // No puede haber dos cuentas con el mismo nombre de usuario.
+            modelBuilder.Entity<Usuario>()
+                .HasIndex(u => u.NombreUsuario)
                 .IsUnique();
 
             // Evitar borrado en cascada: no queremos perder tickets

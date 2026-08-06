@@ -2,6 +2,7 @@ using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
 using GestionServiciosAutomotrices.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -57,6 +58,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         }
 
         // GET: /Clientes/Create
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public IActionResult Create()
         {
             return View(new ClienteGuardarDto());
@@ -65,6 +67,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         // POST: /Clientes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<IActionResult> Create(ClienteGuardarDto dto)
         {
             if (!ModelState.IsValid)
@@ -94,6 +97,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         }
 
         // GET: /Clientes/Edit/5
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<IActionResult> Edit(int id)
         {
             var cliente = await _context.Clientes.FindAsync(id);
@@ -117,6 +121,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         // POST: /Clientes/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<IActionResult> Edit(int id, ClienteGuardarDto dto)
         {
             var cliente = await _context.Clientes.FindAsync(id);
@@ -149,6 +154,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         }
 
         // GET: /Clientes/Delete/5
+        [Authorize(Roles = RolUsuario.Administrador)]
         public async Task<IActionResult> Delete(int id)
         {
             var cliente = await _context.Clientes
@@ -166,6 +172,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         // POST: /Clientes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = RolUsuario.Administrador)]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var cliente = await _context.Clientes

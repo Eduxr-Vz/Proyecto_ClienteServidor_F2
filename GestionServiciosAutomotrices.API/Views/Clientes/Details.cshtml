@@ -6,7 +6,10 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0">@Model.Nombre @Model.Apellidos</h1>
     <div>
-        <a asp-action="Edit" asp-route-id="@Model.IdCliente" class="btn btn-outline-secondary">Editar</a>
+        @if ((User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Administrador) || User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Recepcionista)))
+        {
+            <a asp-action="Edit" asp-route-id="@Model.IdCliente" class="btn btn-outline-secondary">Editar</a>
+        }
         <a asp-action="Index" class="btn btn-outline-dark">Volver a la lista</a>
     </div>
 </div>
@@ -37,8 +40,11 @@
         <div class="card shadow-sm h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span class="fw-semibold">Vehículos registrados</span>
-                <a asp-controller="Vehiculos" asp-action="Create" asp-route-idCliente="@Model.IdCliente"
+                @if ((User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Administrador) || User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Recepcionista)))
+                {
+                    <a asp-controller="Vehiculos" asp-action="Create" asp-route-idCliente="@Model.IdCliente"
                    class="btn btn-sm btn-outline-primary">+ Agregar vehículo</a>
+                }
             </div>
             <div class="card-body p-0">
                 <table class="table mb-0">

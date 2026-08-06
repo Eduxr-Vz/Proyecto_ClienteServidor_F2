@@ -1,0 +1,10 @@
+@model string
+@{
+    var clase = Model switch
+    {
+        GestionServiciosAutomotrices.API.Models.RolUsuario.Administrador => "bg-dark",
+        GestionServiciosAutomotrices.API.Models.RolUsuario.Recepcionista => "bg-primary",
+        _ => "bg-secondary"
+    };
+}
+<span class="badge @clase">@Model</span>

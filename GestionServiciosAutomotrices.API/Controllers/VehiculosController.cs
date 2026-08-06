@@ -2,6 +2,7 @@ using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
 using GestionServiciosAutomotrices.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -60,6 +61,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
 
         // GET: /Vehiculos/Create
         // Puede venir con un cliente preseleccionado desde la ficha del cliente.
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<IActionResult> Create(int? idCliente)
         {
             var dto = new VehiculoGuardarDto();
@@ -76,6 +78,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         // POST: /Vehiculos/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<IActionResult> Create(VehiculoGuardarDto dto)
         {
             await ValidarEnModelStateAsync(dto, idVehiculoActual: null);
@@ -109,6 +112,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         }
 
         // GET: /Vehiculos/Edit/5
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<IActionResult> Edit(int id)
         {
             var vehiculo = await _context.Vehiculos.FindAsync(id);
@@ -137,6 +141,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         // POST: /Vehiculos/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<IActionResult> Edit(int id, VehiculoGuardarDto dto)
         {
             var vehiculo = await _context.Vehiculos.FindAsync(id);
@@ -174,6 +179,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         }
 
         // GET: /Vehiculos/Delete/5
+        [Authorize(Roles = RolUsuario.Administrador)]
         public async Task<IActionResult> Delete(int id)
         {
             var vehiculo = await _context.Vehiculos
@@ -192,6 +198,7 @@ namespace GestionServiciosAutomotrices.API.Controllers
         // POST: /Vehiculos/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = RolUsuario.Administrador)]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var vehiculo = await _context.Vehiculos

@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Gestión Servicios Automotrices - Fase 3",
-    "description": "CRUD completo de Tickets, Clientes, Vehículos, Mecánicos y Servicios. Incluye casos exitosos y casos de error de cada endpoint. Ejecutar las carpetas en orden.",
+    "name": "Gestión Servicios Automotrices",
+    "description": "CRUD completo de Tickets, Clientes, Vehículos, Mecánicos y Servicios, con autenticación por cookie.\n\nIMPORTANTE: la API exige haber iniciado sesión. Ejecuta primero la carpeta \"0. Acceso\" → \"0.1 POST login (admin)\"; Postman guarda la cookie de sesión y las demás peticiones ya funcionan. Sin iniciar sesión todo devuelve 401.\n\nCuenta inicial: usuario admin, contraseña Admin123!",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -12,6 +12,71 @@
     }
   ],
   "item": [
+    {
+      "name": "0. Acceso",
+      "item": [
+        {
+          "name": "0.1 POST login (admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreUsuario\": \"admin\",\n  \"contrasena\": \"Admin123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cuenta/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuenta", "login"]
+            },
+            "description": "Inicia sesión. El servidor responde 200 con los datos del usuario y manda la cookie de sesión, que Postman guarda automáticamente para las peticiones siguientes. EJECUTA ESTA PETICIÓN ANTES QUE LAS DEMÁS."
+          }
+        },
+        {
+          "name": "0.2 POST login con contraseña incorrecta (error)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreUsuario\": \"admin\",\n  \"contrasena\": \"incorrecta\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cuenta/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuenta", "login"]
+            },
+            "description": "Respuesta esperada: 401 Unauthorized. El mensaje no distingue si falló el usuario o la contraseña, para no revelar qué cuentas existen."
+          }
+        },
+        {
+          "name": "0.3 GET quién soy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cuenta/yo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuenta", "yo"]
+            },
+            "description": "Devuelve el usuario y el rol de la sesión actual. Sirve para comprobar que la cookie está funcionando. Sin sesión responde 401."
+          }
+        },
+        {
+          "name": "0.4 POST logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cuenta/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuenta", "logout"]
+            },
+            "description": "Cierra la sesión. Después de esto las demás peticiones vuelven a devolver 401 hasta iniciar sesión otra vez. Ejecútala al final."
+          }
+        }
+      ]
+    },
     {
       "name": "1. Tickets",
       "item": [

@@ -2,6 +2,7 @@ using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
 using GestionServiciosAutomotrices.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -59,6 +60,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // POST: api/vehiculos
         [HttpPost]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<ActionResult<VehiculoDto>> CrearVehiculo(VehiculoGuardarDto dto)
         {
             var error = await ValidarAsync(dto, idVehiculoActual: null);
@@ -91,6 +93,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // PUT: api/vehiculos/5
         [HttpPut("{id:int}")]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<ActionResult<VehiculoDto>> ActualizarVehiculo(int id, VehiculoGuardarDto dto)
         {
             var vehiculo = await BuscarConRelaciones(id);
@@ -125,6 +128,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // DELETE: api/vehiculos/5
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = RolUsuario.Administrador)]
         public async Task<IActionResult> EliminarVehiculo(int id)
         {
             var vehiculo = await _context.Vehiculos

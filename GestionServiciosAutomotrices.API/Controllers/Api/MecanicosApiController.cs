@@ -2,6 +2,7 @@ using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
 using GestionServiciosAutomotrices.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -60,6 +61,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // POST: api/mecanicos
         [HttpPost]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<ActionResult<MecanicoDto>> CrearMecanico(MecanicoGuardarDto dto)
         {
             var mecanico = new Mecanico
@@ -82,6 +84,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // PUT: api/mecanicos/5
         [HttpPut("{id:int}")]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<ActionResult<MecanicoDto>> ActualizarMecanico(int id, MecanicoGuardarDto dto)
         {
             var mecanico = await _context.Mecanicos
@@ -125,6 +128,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // DELETE: api/mecanicos/5
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = RolUsuario.Administrador)]
         public async Task<IActionResult> EliminarMecanico(int id)
         {
             var mecanico = await _context.Mecanicos

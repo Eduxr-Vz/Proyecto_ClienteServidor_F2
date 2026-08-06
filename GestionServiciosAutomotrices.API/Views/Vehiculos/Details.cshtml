@@ -6,7 +6,10 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0">@Model.Marca @Model.Modelo @Model.Anio <span class="badge bg-dark align-middle">@Model.Placas</span></h1>
     <div>
-        <a asp-action="Edit" asp-route-id="@Model.IdVehiculo" class="btn btn-outline-secondary">Editar</a>
+        @if ((User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Administrador) || User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Recepcionista)))
+        {
+            <a asp-action="Edit" asp-route-id="@Model.IdVehiculo" class="btn btn-outline-secondary">Editar</a>
+        }
         <a asp-action="Index" class="btn btn-outline-dark">Volver a la lista</a>
     </div>
 </div>
@@ -39,7 +42,10 @@
         <div class="card shadow-sm h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span class="fw-semibold">Historial de tickets</span>
-                <a asp-controller="Tickets" asp-action="Create" class="btn btn-sm btn-outline-primary">+ Nuevo ticket</a>
+                @if ((User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Administrador) || User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Recepcionista)))
+                {
+                    <a asp-controller="Tickets" asp-action="Create" class="btn btn-sm btn-outline-primary">+ Nuevo ticket</a>
+                }
             </div>
             <div class="card-body p-0">
                 <table class="table mb-0">

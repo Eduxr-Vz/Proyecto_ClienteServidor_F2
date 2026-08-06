@@ -2,6 +2,9 @@ using System.Globalization;
 using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.Hubs;
 using GestionServiciosAutomotrices.API.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 
@@ -24,6 +27,11 @@ builder.Services.AddControllersWithViews(options =>
     {
         // Deja el contador de tickets pendientes listo para el menú.
         options.Filters.Add<ContadorPendientesFilter>();
+
+        // Todo el sistema exige haber iniciado sesión. Las pocas acciones
+        // públicas (el propio login) se marcan con [AllowAnonymous].
+        options.Filters.Add(new AuthorizeFilter(
+            new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build()));
     })
     .AddJsonOptions(options =>
     {
@@ -43,6 +51,49 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // EnableRetryOnFailure reintenta las consultas cuando el servidor tarda en
 // responder. Es importante con LocalDB: se apaga tras unos minutos sin uso y
 // la primera consulta debe esperar a que vuelva a arrancar.
+
+// Autenticación por cookie: al iniciar sesión el servidor manda una cookie
+// firmada con la identidad del usuario, y el navegador la reenvía en cada
+// petición. Así el servidor sabe quién es sin volver a pedir la contraseña.
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(opciones =>
+    {
+        opciones.LoginPath = "/Cuenta/Login";
+        opciones.LogoutPath = "/Cuenta/Logout";
+        opciones.AccessDeniedPath = "/Cuenta/AccesoDenegado";
+        opciones.ExpireTimeSpan = TimeSpan.FromHours(8);
+        opciones.SlidingExpiration = true;              // se renueva mientras se use
+        opciones.Cookie.Name = "TallerSesion";
+        opciones.Cookie.HttpOnly = true;                // JavaScript no puede leerla
+        opciones.Cookie.SameSite = SameSiteMode.Lax;    // mitiga ataques CSRF
+
+        // Las peticiones de la API deben recibir 401/403 en lugar de una
+        // redirección al formulario de login (que no sabrían interpretar).
+        opciones.Events.OnRedirectToLogin = contexto =>
+        {
+            if (contexto.Request.Path.StartsWithSegments("/api"))
+            {
+                contexto.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            }
+            contexto.Response.Redirect(contexto.RedirectUri);
+            return Task.CompletedTask;
+        };
+        opciones.Events.OnRedirectToAccessDenied = contexto =>
+        {
+            if (contexto.Request.Path.StartsWithSegments("/api"))
+            {
+                contexto.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            }
+            contexto.Response.Redirect(contexto.RedirectUri);
+            return Task.CompletedTask;
+        };
+    });
+
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<ServicioUsuarios>();
 
 // SignalR: notificaciones en tiempo real hacia los navegadores conectados.
 builder.Services.AddSignalR();
@@ -75,6 +126,20 @@ var app = builder.Build();
 // proyecto funcione con solo ejecutarlo en cualquier equipo.
 await InicializadorBd.PrepararAsync(app);
 
+// Se asegura de que exista el administrador inicial (admin / Admin123!).
+using (var alcance = app.Services.CreateScope())
+{
+    var servicioUsuarios = alcance.ServiceProvider.GetRequiredService<ServicioUsuarios>();
+    try
+    {
+        await servicioUsuarios.AsegurarAdministradorAsync();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "No se pudo crear el usuario administrador inicial.");
+    }
+}
+
 // ----- Pipeline HTTP -----
 
 if (app.Environment.IsDevelopment())
@@ -86,7 +151,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// Por ahora la API es pública; la autorización se activará cuando exista autenticación.
+// El orden importa: primero se averigua quién es (autenticación) y
+// después si puede entrar a lo que pidió (autorización).
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Rutas con atributos (API REST en /api/tickets).

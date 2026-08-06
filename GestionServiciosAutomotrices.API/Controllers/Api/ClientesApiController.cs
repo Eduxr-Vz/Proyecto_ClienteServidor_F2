@@ -2,6 +2,7 @@ using GestionServiciosAutomotrices.API.Data;
 using GestionServiciosAutomotrices.API.DTOs;
 using GestionServiciosAutomotrices.API.Models;
 using GestionServiciosAutomotrices.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,6 +54,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // POST: api/clientes
         [HttpPost]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<ActionResult<ClienteDto>> CrearCliente(ClienteGuardarDto dto)
         {
             var cliente = new Cliente
@@ -76,6 +78,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // PUT: api/clientes/5
         [HttpPut("{id:int}")]
+        [Authorize(Roles = RolUsuario.PuedenEditar)]
         public async Task<ActionResult<ClienteDto>> ActualizarCliente(int id, ClienteGuardarDto dto)
         {
             var cliente = await _context.Clientes
@@ -103,6 +106,7 @@ namespace GestionServiciosAutomotrices.API.Controllers.Api
 
         // DELETE: api/clientes/5
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = RolUsuario.Administrador)]
         public async Task<IActionResult> EliminarCliente(int id)
         {
             var cliente = await _context.Clientes

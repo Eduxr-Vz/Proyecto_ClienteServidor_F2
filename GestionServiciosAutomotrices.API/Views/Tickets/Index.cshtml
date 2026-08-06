@@ -14,7 +14,10 @@
     <div>
         <a asp-action="PdfListado" asp-route-estado="@estado" asp-route-idMecanico="@idMecanico"
            class="btn btn-outline-danger">Exportar a PDF</a>
-        <a asp-action="Create" class="btn btn-primary">+ Nuevo ticket</a>
+        @if ((User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Administrador) || User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Recepcionista)))
+        {
+            <a asp-action="Create" class="btn btn-primary">+ Nuevo ticket</a>
+        }
     </div>
 </div>
 
@@ -96,7 +99,10 @@
                             <a asp-action="Pdf" asp-route-id="@t.IdTicket" class="btn btn-sm btn-outline-dark"
                                title="Descargar la orden de servicio en PDF">PDF</a>
                             <a asp-action="Edit" asp-route-id="@t.IdTicket" class="btn btn-sm btn-outline-secondary">Editar</a>
-                            <a asp-action="Delete" asp-route-id="@t.IdTicket" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                            @if (User.IsInRole(GestionServiciosAutomotrices.API.Models.RolUsuario.Administrador))
+                            {
+                                <a asp-action="Delete" asp-route-id="@t.IdTicket" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                            }
                         </td>
                     </tr>
                 }
